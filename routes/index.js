@@ -11,7 +11,7 @@ const adminRoutes = require("./adminRoutes");
 const ordersRoutes = require("./ordersRoutes");
 const ProductsController = require("../controllers/ProductsController");
 const TalbeController = require("../controllers/TableController");
-
+const SubjectController = require("../controllers/SubjectController")
 function routes(app){
 
     // app.use('/news', newRouter);
@@ -36,6 +36,8 @@ function routes(app){
 
     app.get('/tables/getAll', authorization, TalbeController.getAll)
 
+    app.get('/subjects/getAll', authorization, SubjectController.getAll)
+    
     app.use('/admin', authAdmin, adminRoutes)
 
     app.use('/orders', authorization, ordersRoutes)

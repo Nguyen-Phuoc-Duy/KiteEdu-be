@@ -9,9 +9,8 @@ const Lessons = sequelize.define('Lessons', {
     },
     name: DataTypes.STRING,
     content: DataTypes.TEXT,
-    date: DataTypes.DATE,
-    timeStart: DataTypes.TIME,
-    timeFinish: DataTypes.TIME,
+    timeStart: DataTypes.DATE,
+    timeFinish: DataTypes.DATE,
     status: {
         type: DataTypes.STRING,
         defaultValue: 'started'

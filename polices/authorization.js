@@ -6,6 +6,7 @@ const Users = require("../models/users");
 
 async function authorization(req, res, next) {
   try {
+    // console.log(req.headers.authorization);
     let auth = req.headers.authorization || `Bearer ${req.query.token}`;
     if (!auth || !auth.startsWith("Bearer ")) {
       return res.json({ errCode: 400, errMsg: "Invalid token" });

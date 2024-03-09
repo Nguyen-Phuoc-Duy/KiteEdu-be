@@ -43,6 +43,7 @@ let checkAdminROOT = async () => {
     email: "ROOT",
     password,
     role: "admin",
+    subjectId: ""
   });
 };
 
@@ -53,7 +54,7 @@ sequelize.sync();
 checkAdminROOT();
 
 app.listen(process.env.PORT, () => {
-  let password = hashPassword("Admin@123");
+  let password = hashPassword("a");
   console.log(
     `App listening at http://localhost:${process.env.PORT}/`,
     password

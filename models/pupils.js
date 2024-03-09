@@ -9,9 +9,9 @@ const Pupils = sequelize.define("Pupils", {
   },
   name: DataTypes.STRING,
   status: {
-    type: DataTypes.ENUM("active", "inactive"),
-    defaultValue: "active",
-  },
+    type: DataTypes.STRING,
+    defaultValue: "active", //inactive
+  }, 
   gender: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,

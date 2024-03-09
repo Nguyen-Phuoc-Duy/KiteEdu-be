@@ -8,13 +8,13 @@ const Subjects = sequelize.define("Subjects", {
     primaryKey: true,
   },
   name: DataTypes.STRING,
-  createdBy: {
-    type: DataTypes.UUID,
-    allowNull: false,
-  },
+  // createdBy: {
+  //   type: DataTypes.UUID,
+  //   allowNull: false,
+  // },
   status: {
-    type: DataTypes.ENUM("active", "inactive"),
-    defaultValue: "active",
+    type: DataTypes.STRING,
+    defaultValue: "active", //inactive
   },
   // isDeleted: {
   //     type: DataTypes.BOOLEAN,
