@@ -4,6 +4,8 @@ const ProductsController = require('../controllers/ProductsController');
 const UsersController = require('../controllers/UsersController');
 const TalbeController = require('../controllers/TableController');
 const SubjectController = require('../controllers/SubjectController');
+const RoomController = require('../controllers/RoomController');
+const PupilController = require('../controllers/PupilController')
 const router = express.Router();
 
 
@@ -13,9 +15,17 @@ router.post('/createTable', TalbeController.createTable);
 
 router.post('/createSubject', SubjectController.createSubject);
 
+router.post('/createPupil', PupilController.createPupil);
+
+router.post('/createRoom}', RoomController.createRoom);
+
 router.post('/updateTable', TalbeController.updateTable);
 
 router.post('/updateSubject', SubjectController.updateSubject);
+
+router.post('/updateRoom', RoomController.updateRoom);
+
+router.post('/updatePupil', PupilController.updatePupil);
 
 router.delete('/deleteTable/:ID', TalbeController.deleteTable);
 

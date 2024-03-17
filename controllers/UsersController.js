@@ -290,43 +290,77 @@ const UsersController = {
 
   updateUserSubject: async (req, res) => {
     try {
-        let { ID, role, subjectId } = req.body;
-        console.log("req.body", req.body);
-        if (!ID) return res.json({ errCode: 401, errMsg: "User not found!" });
-        if (!ID || (!subjectId && !role)) {
-            return res.json({ errCode: 500, errMsg: "Invalid params!" });
-        }
+      let { ID, role, subjectId } = req.body; // Lấy ra ID và vai trò mới từ req.body
+      // console.log("req.body", req.body); // Dòng này làm gì?
+      if (!ID) return res.json({ errCode: 401, errMsg: "User not found!" }); // Kiểm tra xem ID có tồn tại không, nếu không trả về lỗi
 
-        let checkAdminRole = await Users.findOne({ where: { ID }, raw: true });
+      // if (role === "admin")
+      //   return res.json({ errCode: 401, errMsg: "Forbidden!" }); // Nếu vai trò mới là 'admin', trả về lỗi
 
-        if (checkAdminRole.role === "manager" || checkAdminRole.role === "admin")
-            return res.json({ errCode: 401, errMsg: "Forbidden!" });
+      // if (!["employee", "manager"].includes(role)) {
+      //   // Kiểm tra xem vai trò mới có thuộc các giá trị hợp lệ không
+      //   return res.json({ errCode: 401, errMsg: "Invalid role!" }); // Nếu không, trả về lỗi
+      // }
 
-        let updated;
+      let checkAdminROOT = await Users.findOne({ where: { ID }, raw: true }); // Tìm kiếm người dùng theo ID
 
-        // Kiểm tra nếu subjectId là một id
-        if (!isNaN(parseInt(subjectId))) {
-            updated = await Users.update({ subjectId }, { where: { ID } });
-        } else { // Nếu subjectId là name của môn học
-            let subject = await Subject.findOne({ where: { name: subjectId } });
-            if (!subject) {
-                return res.json({ errCode: 401, errMsg: "Subject not found!" });
-            }
-            updated = await Users.update({ subjectId: subject.id }, { where: { ID } });
-        }
+      if (checkAdminROOT.email === "ROOT" || checkAdminROOT.role === "admin")
+        return res.json({ errCode: 401, errMsg: "Forbidden!" }); // Nếu người dùng là 'ROOT' hoặc đã có vai trò là 'admin', trả về lỗi
 
-        if (updated[0]) {
-            return res.json({
-                errCode: 200,
-                errMsg: `Update success, now user: ${checkAdminRole.subjectId} is: ` + subjectId,
-            });
-        } else {
-            return res.json({ errCode: 401, errMsg: "Update failed!" });
-        }
+      let updated = await Users.update({ subjectId }, { where: { ID } }); // Cập nhật vai trò mới của người dùng
+
+      if (updated[0]) {
+        return res.json({
+          errCode: 200,
+          errMsg:
+            `Update success, now user: ${checkAdminROOT.name} is: ` + subjectId, // Trả về thông báo thành công với tên và vai trò mới của người dùng
+        });
+      } else {
+        return res.json({ errCode: 401, errMsg: "Update failed!" }); // Nếu cập nhật thất bại, trả về lỗi
+      }
     } catch (err) {
-        return res.json({ errCode: 500, errMsg: "System Error!" });
+      return res.json({ errCode: 500, errMsg: "System Error!" }); // Nếu có lỗi xảy ra trong quá trình xử lý, trả về lỗi hệ thống
     }
-},
+  },
+//   updateUserSubject: async (req, res) => {
+//     try {
+//         let { ID, role, subjectId } = req.body;
+//         console.log("req.body", req.body);
+//         if (!ID) return res.json({ errCode: 401, errMsg: "User not found!" });
+//         if (!ID || (!subjectId && !role)) {
+//             return res.json({ errCode: 500, errMsg: "Invalid params!" });
+//         }
+
+//         let checkAdminRole = await Users.findOne({ where: { ID }, raw: true });
+
+//         if ( checkAdminRole.role === "admin")
+//             return res.json({ errCode: 401, errMsg: "Forbidden!" });
+
+//         let updated;
+
+//         // Kiểm tra nếu subjectId là một id
+//         if (!isNaN(parseInt(subjectId))) {
+//             updated = await Users.update({ subjectId }, { where: { ID } });
+//         } else { // Nếu subjectId là name của môn học
+//             let subject = await Subject.findOne({ where: { name: subjectId } });
+//             if (!subject) {
+//                 return res.json({ errCode: 401, errMsg: "Subject not found!" });
+//             }
+//             updated = await Users.update({ subjectId: subject.id }, { where: { ID } });
+//         }
+
+//         if (updated[0]) {
+//             return res.json({
+//                 errCode: 200,
+//                 errMsg: `Update success, now user: ${checkAdminRole.subjectId} is: ` + subjectId,
+//             });
+//         } else {
+//             return res.json({ errCode: 401, errMsg: "Update failed!" });
+//         }
+//     } catch (err) {
+//         return res.json({ errCode: 500, errMsg: "System Error!" });
+//     }
+// },
 
   lockOrUnlockUser: async (req, res) => {
     try {
