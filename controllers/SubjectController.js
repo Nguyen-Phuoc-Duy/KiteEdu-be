@@ -4,13 +4,13 @@ const SubjectController = {
   createSubject: async (req, res) => {
     let { name, status } = req.body;
 
-    if (!name || !status)
+    if (!name )
       return res.json({ errCode: 401, errMsg: "Invalid params!" });
 
     let newSubject = await Subjects.create(
       {
         name,
-        status,
+        status: status ? status : 'active',
       },
       { returning: true }
     );

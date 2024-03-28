@@ -5,7 +5,7 @@ const Orders = require("../models/classes");
 const Classes = require("../models/classes");
 const Lessons = require("../models/lessons");
 const Products = require("../models/products");
-const Rooms= require("../models/rooms");
+const Rooms = require("../models/rooms");
 const Subjects = require("../models/subjects");
 const Pupils = require("../models/pupils");
 const Tables = require("../models/tables");
@@ -197,15 +197,20 @@ const OrdersController = {
     } catch (err) {}
   },
   getByTableID: async (req, res) => {
+    // Định nghĩa hàm getByTableID với tham số req và res
     try {
-      let { ID } = req.params;
+      // Bắt đầu khối try để xử lý các lệnh có thể sinh ra ngoại lệ
+      let { ID } = req.params; // Lấy giá trị của tham số ID từ yêu cầu HTTP
 
-      if (!ID) return res.json({ errCode: 401, errMsg: "Table not found!" });
+      if (!ID) return res.json({ errCode: 401, errMsg: "Table not found!" }); // Kiểm tra xem có ID không, nếu không thì trả về thông báo lỗi
 
+      // Lấy danh sách người dùng từ cơ sở dữ liệu, loại bỏ thuộc tính mật khẩu
       const listUsers = await Users.findAll({
         raw: true,
         attributes: { exclude: ["password"] },
       });
+
+      // Lấy danh sách đơn hàng từ cơ sở dữ liệu, dựa trên ID của bàn, sắp xếp theo thời gian tạo giảm dần
       let listOrders = await Orders.findAll({
         where: {
           tableId: ID,
@@ -213,45 +218,118 @@ const OrdersController = {
         raw: true,
         order: [["createdAt", "DESC"]],
       });
+
+      // Duyệt qua từng đơn hàng trong danh sách đơn hàng
       for (let order of listOrders) {
         if (order?.ID) {
+          // Kiểm tra xem đơn hàng có ID không
+          // Lấy chi tiết đơn hàng từ cơ sở dữ liệu, dựa trên ID của đơn hàng hiện tại
           let details = await OrderDetail.findAll({
             where: {
               orderID: order.ID,
             },
             raw: true,
           });
-          let listProduct = [];
+          let listProduct = []; // Khởi tạo mảng để lưu trữ danh sách sản phẩm trong đơn hàng
+          // Duyệt qua từng chi tiết đơn hàng
           for (let detail of details) {
             if (detail?.productId) {
+              // Kiểm tra xem chi tiết đơn hàng có ID sản phẩm không
+              // Lấy thông tin của sản phẩm từ cơ sở dữ liệu dựa trên ID sản phẩm
               let product = await Products.findOne({
                 where: {
                   ID: detail.productId,
                 },
                 raw: true,
               });
+              // Thêm thông tin sản phẩm và số lượng vào danh sách sản phẩm trong đơn hàng
               listProduct.push({
                 ...product,
                 quantity: detail.quantity,
               });
             }
           }
+          // Gán danh sách sản phẩm vào đơn hàng
           order.products = listProduct;
+
+          // Nếu có người tạo đơn hàng, gán thông tin người tạo vào đơn hàng
           if (order.createdBy) {
             order.createdBy = listUsers.find((u) => u.ID === order.createdBy);
           }
+          // Nếu có người thanh toán đơn hàng, gán thông tin người thanh toán vào đơn hàng
           if (order.checkoutBy) {
             order.checkoutBy = listUsers.find((u) => u.ID === order.checkoutBy);
           }
         }
       }
 
+      // Trả về danh sách đơn hàng đã được xử lý và thông báo thành công
       return res.json({ errCode: 200, errMsg: "Success!", data: listOrders });
     } catch (err) {
-      console.log(err);
+      // Bắt các ngoại lệ nếu có
+      console.log(err); // In lỗi ra console để ghi nhận và debug
+      // Trả về thông báo lỗi nếu có lỗi xảy ra
       return res.json({ errCode: 500, errMsg: "System error!" });
     }
   },
+
+  // getByTableID: async (req, res) => {
+  //   try {
+  //     let { ID } = req.params;
+
+  //     if (!ID) return res.json({ errCode: 401, errMsg: "Table not found!" });
+
+  //     const listUsers = await Users.findAll({
+  //       raw: true,
+  //       attributes: { exclude: ["password"] },
+  //     });
+  //     let listOrders = await Orders.findAll({
+  //       where: {
+  //         tableId: ID,
+  //       },
+  //       raw: true,
+  //       order: [["createdAt", "DESC"]],
+  //     });
+  //     for (let order of listOrders) {
+  //       if (order?.ID) {
+  //         let details = await OrderDetail.findAll({
+  //           where: {
+  //             orderID: order.ID,
+  //           },
+  //           raw: true,
+  //         });
+  //         let listProduct = [];
+  //         for (let detail of details) {
+  //           if (detail?.productId) {
+  //             let product = await Products.findOne({
+  //               where: {
+  //                 ID: detail.productId,
+  //               },
+  //               raw: true,
+  //             });
+  //             listProduct.push({
+  //               ...product,
+  //               quantity: detail.quantity,
+  //             });
+  //           }
+  //         }
+  //         order.products = listProduct;
+  //         if (order.createdBy) {
+  //           order.createdBy = listUsers.find((u) => u.ID === order.createdBy);
+  //         }
+  //         if (order.checkoutBy) {
+  //           order.checkoutBy = listUsers.find((u) => u.ID === order.checkoutBy);
+  //         }
+  //       }
+  //     }
+
+  //     return res.json({ errCode: 200, errMsg: "Success!", data: listOrders });
+  //   } catch (err) {
+  //     console.log(err);
+  //     return res.json({ errCode: 500, errMsg: "System error!" });
+  //   }
+  // },
+
   getAllOrders: async (req, res) => {
     try {
       let { status, orderBy, filterName } = req.body;

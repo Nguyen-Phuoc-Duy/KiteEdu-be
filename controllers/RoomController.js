@@ -3,14 +3,14 @@ const Rooms = require("../models/rooms");
 const RoomController = {
   createRoom: async (req, res) => {
     let { name, status } = req.body;
-
-    if (!name || !status)
+    console.log("klklk", req.body);
+    if (!name )
       return res.json({ errCode: 401, errMsg: "Invalid params!" });
 
     let newRoom = await Rooms.create(
       {
         name,
-        status,
+        status: status ? status : 'empty',
       },
       { returning: true }
     );

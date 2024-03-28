@@ -91,7 +91,8 @@ const UsersController = {
             phone,
             birth,
             gender,
-            subjectId,
+            subjectId: subjectId ? subjectId : '',
+            role: subjectId ? 'employee' : 'manager'
           },
           { returning: true }
         );
@@ -153,6 +154,7 @@ const UsersController = {
             phone: user.phone,
             status: user.status,
             username: user.username,
+            subjectId: user.subjectId,
             id: user.ID,
           });
           user = user.dataValues;
@@ -194,11 +196,8 @@ const UsersController = {
         return res.json({ errCode: 500, errMsg: "Invalid params!" });
       }
 
-      // if (!ID || !name) {
-      //   return res.json({ errCode: 500, errMsg: "Invalid params!" });
-      // }
-
-      let opts = {};
+      if (checkEmail(email)) {
+        let opts = {};
 
       if (name) {
         opts.name = name;
@@ -221,19 +220,6 @@ const UsersController = {
       if (email) {
         opts.email = email;
       }
-      if (password) {
-        if (!comparePassword(currentPWD, user.password)) {
-          return res.json({
-            errCode: 401,
-            errMsg: "Invalid current password!",
-          });
-        }
-        let passwordHash = hashPassword(password);
-        if (!passwordHash)
-          return res.json({ errCode: 500, errMsg: "System Error!" });
-        opts.password = passwordHash;
-      }
-
       if (Object.keys(opts).length > 0) {
         let userUpdated = await Users.update(opts, { where: { ID } });
         if (userUpdated[0]) {
@@ -248,6 +234,60 @@ const UsersController = {
         errCode: 401,
         errMsg: "Update failed!",
       });
+      } else {
+        return res.json({ errCode: 500, errMsg: "Email wrong format!" });
+      }
+
+      // let opts = {};
+
+      // if (name) {
+      //   opts.name = name;
+      // }
+      // if (username) {
+      //   opts.username = username;
+      // }
+      // if (gender) {
+      //   opts.gender = gender;
+      // }
+      // if (birth) {
+      //   opts.birth = birth;
+      // }
+      // if (phone) {
+      //   opts.phone = phone;
+      // }
+      // if (address) {
+      //   opts.address = address;
+      // }
+      // if (email) {
+      //   opts.email = email;
+      // }
+    //   if (password) {
+    //     if (!comparePassword(currentPWD, user.password)) {
+    //       return res.json({
+    //         errCode: 401,
+    //         errMsg: "Invalid current password!",
+    //       });
+    //     }
+    //     let passwordHash = hashPassword(password);
+    //     if (!passwordHash)
+    //       return res.json({ errCode: 500, errMsg: "System Error!" });
+    //     opts.password = passwordHash;
+    //   }
+
+      // if (Object.keys(opts).length > 0) {
+      //   let userUpdated = await Users.update(opts, { where: { ID } });
+      //   if (userUpdated[0]) {
+      //     return res.json({
+      //       errCode: 200,
+      //       errMsg: "Update success!",
+      //     });
+      //   }
+      // }
+
+      // return res.json({
+      //   errCode: 401,
+      //   errMsg: "Update failed!",
+      // });
     } catch (err) {
       console.log(err);
       return res.json({ errCode: 500, errMsg: "System Error!" });
@@ -392,8 +432,11 @@ const UsersController = {
       let { user } = req;
       if (!user) return res.json({ errCode: 401, errMsg: "Forbidden!" });
       let opts = {
-        role: "employee",
+        role: ["employee", "manager"],
       };
+      if (user.role === "manager") {
+        opts.role = { [Op.in]: ["employee", "manager"] };
+      }
       if (user.role === "admin") {
         opts.role = { [Op.in]: ["employee", "manager"] };
       }

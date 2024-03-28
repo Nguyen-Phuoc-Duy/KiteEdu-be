@@ -6,38 +6,38 @@ const TalbeController = require('../controllers/TableController');
 const SubjectController = require('../controllers/SubjectController');
 const RoomController = require('../controllers/RoomController');
 const PupilController = require('../controllers/PupilController')
+const ClassController =  require('../controllers/ClassController')
 const router = express.Router();
 
 
 router.post('/lockOrUnlockUser/:ID', UsersController.lockOrUnlockUser);
 
-router.post('/createTable', TalbeController.createTable);
+// router.post('/createTable', TalbeController.createTable);
 
 router.post('/createSubject', SubjectController.createSubject);
 
-router.post('/createPupil', PupilController.createPupil);
 
-router.post('/createRoom}', RoomController.createRoom);
 
-router.post('/updateTable', TalbeController.updateTable);
+router.post('/createRoom', RoomController.createRoom);
+
+
+// router.post('/updateTable', TalbeController.updateTable);
 
 router.post('/updateSubject', SubjectController.updateSubject);
 
 router.post('/updateRoom', RoomController.updateRoom);
 
-router.post('/updatePupil', PupilController.updatePupil);
+// router.delete('/deleteTable/:ID', TalbeController.deleteTable);
 
-router.delete('/deleteTable/:ID', TalbeController.deleteTable);
+// router.post('/createProduct', ProductsController.createProduct);
 
-router.post('/createProduct', ProductsController.createProduct);
+// router.post('/updateProduct', ProductsController.updateProduct);
 
-router.post('/updateProduct', ProductsController.updateProduct);
-
-router.post('/getAllOrders', OrdersController.getAllOrders);
+// router.post('/getAllOrders', OrdersController.getAllOrders);
 
 // router.post('/createEmployee', UsersController.register);
 
-router.delete('/deleteProduct/:ID', ProductsController.deleteProduct);
+// router.delete('/deleteProduct/:ID', ProductsController.deleteProduct);
 
 router.post('/updateUserRole', UsersController.updateRole);
 

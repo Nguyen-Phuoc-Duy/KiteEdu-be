@@ -18,6 +18,11 @@ const ListPupils = sequelize.define("ListPupils", {
   lessonId: {
     type: DataTypes.UUID,
     allowNull: false,
+    defaultValue: ""
+  },
+  pupilId: {
+    type: DataTypes.UUID,
+    allowNull: false,
   },
   status: {
     type: DataTypes.STRING,

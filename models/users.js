@@ -33,7 +33,7 @@ const Users = sequelize.define("Users", {
     type: DataTypes.DATEONLY, // Ngày sinh của người dùng (chỉ ngày, không có giờ)
   },
   role: {
-    // type: DataTypes.ENUM("employee", "manager", "admin"),
+    // "employee", "manager", "admin"),
     type: DataTypes.STRING,
     defaultValue: "employee",
   }, // 'employee' or 'manager' or 'admin'

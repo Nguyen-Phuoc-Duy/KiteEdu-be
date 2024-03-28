@@ -24,10 +24,24 @@ const PupilController = {
       !parent_phone ||
       !gender ||
       !birth ||
-      !address ||
-      !status
+      !address 
+      // ||!status
     )
       return res.json({ errCode: 401, errMsg: "Invalid params!" });
+    // if (!name) return res.json({ errCode: 401, errMsg: "Invalid params1!" });
+
+    // if (!email) return res.json({ errCode: 401, errMsg: "Invalid params2!" });
+    // if (!phone) return res.json({ errCode: 401, errMsg: "Invalid params3!" });
+    // if (!parent_name)
+    //   return res.json({ errCode: 401, errMsg: "Invalid params4!" });
+    // if (!parent_email)
+    //   return res.json({ errCode: 401, errMsg: "Invalid params5!" });
+    // if (!parent_phone)
+    //   return res.json({ errCode: 401, errMsg: "Invalid params6!" });
+    // if (!gender) return res.json({ errCode: 401, errMsg: "Invalid params7!" });
+    // if (!birth) return res.json({ errCode: 401, errMsg: "Invalid params8!" });
+    // if (!address) return res.json({ errCode: 401, errMsg: "Invalid params9!" });
+    // if (!status) return res.json({ errCode: 401, errMsg: "Invalid params10!" });
 
     let newPupil = await Pupils.create(
       {
@@ -40,7 +54,7 @@ const PupilController = {
         gender,
         birth,
         address,
-        status,
+        status: status ? status : "active",
       },
       { returning: true }
     );
@@ -52,13 +66,13 @@ const PupilController = {
   },
   getAll: async (req, res) => {
     try {
-      let lisPupils = await Pupils.findAll({
+      let listPupils = await Pupils.findAll({
         order: [["createdAt", "DESC"]],
       });
       return res.json({
         errCode: 200,
         errMsg: "Success",
-        data: lisPupils,
+        data: listPupils,
       });
     } catch (err) {
       console.log(err);
@@ -71,85 +85,83 @@ const PupilController = {
 
   updatePupil: async (req, res) => {
     try {
-        let {
-            ID,
-            name,
-            status,
-            email,
-            phone,
-            parent_email,
-            parent_name,
-            parent_phone,
-            gender,
-            birth,
-            address,
-        } = req.body;
-        console.log("hhhhhhhhhhhh", req.body);
-        if (!ID) {
-            return res.json({ errCode: 401, errMsg: "Invalid params!1" });
-        }
+      let {
+        ID,
+        name,
+        status,
+        email,
+        phone,
+        parent_email,
+        parent_name,
+        parent_phone,
+        gender,
+        birth,
+        address,
+      } = req.body;
+      console.log("hhhhhhhhhhhh", req.body);
+      if (!ID) {
+        return res.json({ errCode: 401, errMsg: "Invalid params!1" });
+      }
 
-        // Initialize an object to store the update options
-        let opts = {};
+      // Initialize an object to store the update options
+      let opts = {};
 
-        // Check if each field is provided and update the opts object accordingly
-        if (name !== undefined) {
-            opts.name = name;
-        }
-        if (status !== undefined) {
-            opts.status = status;
-        }
-        if (email !== undefined) {
-            opts.email = email;
-        }
-        if (phone !== undefined) {
-            opts.phone = phone;
-        }
-        if (parent_email !== undefined) {
-            opts.parent_email = parent_email;
-        }
-        if (parent_name !== undefined) {
-            opts.parent_name = parent_name;
-        }
-        if (parent_phone !== undefined) {
-            opts.parent_phone = parent_phone;
-        }
-        if (gender !== undefined) {
-            opts.gender = gender;
-        }
-        if (birth !== undefined) {
-            opts.birth = birth;
-        }
-        if (address !== undefined) {
-            opts.address = address;
-        }
+      // Check if each field is provided and update the opts object accordingly
+      if (name !== undefined) {
+        opts.name = name;
+      }
+      if (status !== undefined) {
+        opts.status = status;
+      }
+      if (email !== undefined) {
+        opts.email = email;
+      }
+      if (phone !== undefined) {
+        opts.phone = phone;
+      }
+      if (parent_email !== undefined) {
+        opts.parent_email = parent_email;
+      }
+      if (parent_name !== undefined) {
+        opts.parent_name = parent_name;
+      }
+      if (parent_phone !== undefined) {
+        opts.parent_phone = parent_phone;
+      }
+      if (gender !== undefined) {
+        opts.gender = gender;
+      }
+      if (birth !== undefined) {
+        opts.birth = birth;
+      }
+      if (address !== undefined) {
+        opts.address = address;
+      }
 
-        // Check if there are any fields to update
-        if (Object.keys(opts).length > 0) {
-            // Update the pupil with the provided options
-            let userPupilUpdated = await Pupils.update(opts, { where: { ID } });
-            if (userPupilUpdated[0]) {
-                return res.json({
-                    errCode: 200,
-                    errMsg: "Update success!",
-                });
-            } else {
-                return res.json({ errCode: 401, errMsg: "Pupil not found!" });
-            }
+      // Check if there are any fields to update
+      if (Object.keys(opts).length > 0) {
+        // Update the pupil with the provided options
+        let userPupilUpdated = await Pupils.update(opts, { where: { ID } });
+        if (userPupilUpdated[0]) {
+          return res.json({
+            errCode: 200,
+            errMsg: "Update success!",
+          });
         } else {
-            // If no fields are provided to update, return success
-            return res.json({ errCode: 200, errMsg: "No fields to update!" });
+          return res.json({ errCode: 401, errMsg: "Pupil not found!" });
         }
+      } else {
+        // If no fields are provided to update, return success
+        return res.json({ errCode: 200, errMsg: "No fields to update!" });
+      }
     } catch (err) {
-        console.log(err);
-        return res.json({
-            errCode: 500,
-            errMsg: "System error!",
-        });
+      console.log(err);
+      return res.json({
+        errCode: 500,
+        errMsg: "System error!",
+      });
     }
-},
-
+  },
 };
-
 
 module.exports = PupilController;
