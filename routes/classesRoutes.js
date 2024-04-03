@@ -12,6 +12,10 @@ router.post("/getClassByUser", ClassController.getClassByUser);
 
 router.post("/getPupilByClass", ClassController.getPupilByClass);
 
+router.post("/removePupilInClass", ClassController.removePupilInClass);
+
+router.post("/addPupilInClass", ClassController.addPupilInClass);
+
 // router.get('/getDetailOrder/:ID', OrdersController.getDetailOrder)
 
 // router.post('/create', OrdersController.createOrder);

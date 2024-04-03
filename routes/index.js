@@ -12,12 +12,14 @@ const ordersRoutes = require("./ordersRoutes");
 const classesRoutes = require("./classesRoutes");
 const pupilsRoutes = require("./pupilsRoutes");
 const lessonsRoutes = require("./lessonsRoutes")
+const listPupilRoutes = require("./listPupilRoutes")
 const ProductsController = require("../controllers/ProductsController");
 const TalbeController = require("../controllers/TableController");
 const SubjectController = require("../controllers/SubjectController");
 const RoomController = require("../controllers/RoomController");
 const PupilController = require("../controllers/PupilController");
 const ClassController = require("../controllers/ClassController");
+const ListPupilController = require("../controllers/ListPupilController");
 function routes(app) {
   // app.use('/news', newRouter);
 
@@ -62,6 +64,8 @@ function routes(app) {
   app.use("/lesson", authorization, lessonsRoutes);
 
   app.use("/pupil", authorization, pupilsRoutes);
+
+  app.use("/listpupil", authorization, listPupilRoutes);
 
   app.use("/", (req, res) => {
     res.status(200).json({ message: "Connected to Service!" });

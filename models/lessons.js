@@ -9,8 +9,26 @@ const Lessons = sequelize.define('Lessons', {
     },
     name: DataTypes.STRING,
     content: DataTypes.TEXT,
-    timeStart: DataTypes.DATE,
-    timeFinish: DataTypes.DATE,
+    timeStart: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+        field: 'timestart',
+        get() {
+            const value = this.getDataValue('timeStart');
+            return value ? value.toISOString().slice(0, 16).replace('T', ' ') : null;
+        }
+    },
+    timeFinish: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+        field: 'timefinish',
+        get() {
+            const value = this.getDataValue('timeFinish');
+            return value ? value.toISOString().slice(0, 16).replace('T', ' ') : null;
+        }
+    },
     status: {
         type: DataTypes.STRING,
         defaultValue: 'started'
