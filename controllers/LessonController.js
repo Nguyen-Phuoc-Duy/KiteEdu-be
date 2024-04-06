@@ -5,6 +5,7 @@ const Pupils = require("../models/pupils");
 const Subjects = require("../models/subjects");
 const Users = require("../models/users");
 const { Op } = require("sequelize");
+// const moment = require("moment");
 const LessonController = {
   getLessonByClass: async (req, res) => {
     // Định nghĩa hàm getByTableID với tham số req và res
@@ -42,9 +43,9 @@ const LessonController = {
             if (detail?.pupilId) {
               // Kiểm tra xem chi tiết đơn hàng có ID sản phẩm không
               // Lấy thông tin của sản phẩm từ cơ sở dữ liệu dựa trên ID sản phẩm
-              let pupil = await Pupils.findOne({
+              let pupil = await ListPupils.findOne({
                 where: {
-                  ID: detail.pupilId,
+                  pupilId: detail.pupilId,
                 },
                 raw: true,
               });
@@ -70,11 +71,66 @@ const LessonController = {
     }
   },
 
+  getLessonByUser1: async (req, res) => {
+    // Định nghĩa hàm getByTableID với tham số req và res
+    try {
+      // Bắt đầu khối try để xử lý các lệnh có thể sinh ra ngoại lệ
+      let { ID } = req.body; // Lấy giá trị của tham số ID từ yêu cầu HTTP
+      //console.log("--the identity", ID);
+      // console.log("gggggggggggggg", req.body);
+      if (!ID) return res.json({ errCode: 401, errMsg: "User not found!" }); // Kiểm tra xem có ID không, nếu không thì trả về thông báo lỗi
+
+      // Lấy danh sách đơn hàng từ cơ sở dữ liệu, dựa trên ID của bàn, sắp xếp theo thời gian tạo giảm dần
+      let listLessons = await Lesson.findAll({
+        where: {
+          userId: ID,
+        },
+        raw: true,
+        order: [["createdAt", "DESC"]],
+      });
+
+      // Trả về danh sách đơn hàng đã được xử lý và thông báo thành công
+      return res.json({ errCode: 200, errMsg: "Success!", data: listLessons });
+    } catch (err) {
+      // Bắt các ngoại lệ nếu có
+      console.log(err); // In lỗi ra console để ghi nhận và debug
+      // Trả về thông báo lỗi nếu có lỗi xảy ra
+      return res.json({ errCode: 500, errMsg: "System error!" });
+    }
+  },
+  getLessonByUser: async (req, res) => {
+    try {
+      let listLessons = await Lesson.findAll({
+        order: [["createdAt", "DESC"]],
+      });
+      return res.json({
+        errCode: 200,
+        errMsg: "Success",
+        data: listLessons,
+      });
+    } catch (err) {
+      console.log(err);
+      return res.json({
+        errCode: 500,
+        errMsg: "System error!",
+      });
+    }
+  },
+
   createLesson: async (req, res) => {
     try {
-      let { name, status, userId, listPupil, classId, roomId, content } =
-        req.body;
-
+      let {
+        // status,
+        // listPupil,
+        name,
+        userId,
+        classId,
+        roomId,
+        content,
+        timeStart,
+        timeFinish,
+      } = req.body;
+      console.log("ooooooooooooooooooooooo", req.body);
       if (!userId || !classId)
         return res.json({ errCode: 401, errMsg: "Invalid params!" });
 
@@ -87,43 +143,45 @@ const LessonController = {
           errCode: 401,
           errMsg: "Class not found or deleted!",
         });
-      }
+      } else {
+        let newLesson = await Lesson.create(
+          {
+            name,
+            status: "started",
+            userId,
+            classId,
+            roomId,
+            content,
+            timeStart,
+            timeFinish,
+          },
+          { returning: true }
+        );
+        // newLesson = newLesson.dataValues;
+        // if (listPupil?.length > 0) {
+        //   let pupilsCreated = [];
+        //   for (let p of listPupil) {
+        //     let detail = await ListPupils.create(
+        //       {
+        //         classId: newLesson.classId,
+        //         pupilId: p.id,
+        //         userId: newLesson.userId,
+        //         lessonId: newLesson.ID,
+        //         status: p.status,
+        //       },
+        //       { returning: true }
+        //     );
+        //     pupilsCreated.push(detail);
+        //   }
+        //   newLesson.pupils = pupilsCreated;
+        // }
 
-      let newLesson = await Lesson.create(
-        {
-          name,
-          status: "started",
-          userId,
-          classId,
-          roomId,
-          content,
-        },
-        { returning: true }
-      );
-      newLesson = newLesson.dataValues;
-      if (listPupil?.length > 0) {
-        let pupilsCreated = [];
-        for (let p of listPupil) {
-          let detail = await ListPupils.create(
-            {
-              classId: newLesson.classId,
-              pupilId: p.id,
-              userId: newLesson.userId,
-              lessonId: newLesson.ID,
-              status: p.status,
-            },
-            { returning: true }
-          );
-          pupilsCreated.push(detail);
-        }
-        newLesson.pupils = pupilsCreated;
+        return res.json({
+          errCode: 200,
+          errMsg: "Create lesson succes!",
+          data: newLesson,
+        });
       }
-
-      return res.json({
-        errCode: 200,
-        errMsg: "Create lesson succes!",
-        data: newLesson,
-      });
     } catch (err) {
       console.log(err);
       return res.json({
@@ -180,22 +238,11 @@ const LessonController = {
       listClassesPupil = await ListPupils.findAll({
         where: {
           classId: classId,
+          lessonId: lessonId,
         },
         raw: true,
         order: [["createdAt", "DESC"]],
       });
-      // else {
-      //   // Nếu không có lessonId, lấy danh sách học sinh của lớp không có lessonId
-      //   listClassesPupil = await ListPupils.findAll({
-      //     where: {
-      //       classId: classId,
-      //       lessonId: "",
-      //       status: "attended",
-      //     },
-      //     raw: true,
-      //     order: [["createdAt", "DESC"]],
-      //   });
-      // }
 
       return res.json({
         errCode: 200,
@@ -272,50 +319,54 @@ const LessonController = {
 
   presentPupilInClass: async (req, res) => {
     try {
-      let { classId, pupilId } = req.body;
-      console.log("Request Body3:", req.body);
+      let { classId, pupilId, lessonId, userId, status } = req.body;
+      console.log("xxxxxxxxxxxxxxxxxxxxxx", req.body);
       if (!classId || !pupilId)
         return res.json({ errCode: 401, errMsg: "Invalid params!" });
 
-      let pupil = await ListPupils.findAll({
+      let find = await ListPupils.findOne({
         where: {
           classId: classId,
           pupilId: pupilId,
-          // lessonId: "",
+          lessonId: lessonId,
+          userId: userId,
         },
         raw: true,
       });
 
-      if (pupil) {
-        await ListPupils.update(
-          { status: "present" },
+      if (!find) {
+        let pupil = await ListPupils.create(
+          {
+            classId,
+            pupilId,
+            lessonId,
+            userId,
+            status,
+          },
+          { returning: true }
+        );
+        return res.json({
+          errCode: 200,
+          errMsg: "present/absent pupil succes!",
+          data: pupil,
+        });
+      } else {
+        let pupil = await ListPupils.update(
+          { status: status },
           {
             where: {
               classId: classId,
-              // lessonId: "",
               pupilId: pupilId,
+              lessonId: lessonId,
+              userId: userId,
             },
           }
         );
-
-        let newPupils = await ListPupils.findOne({
-          where: {
-            classId: classId,
-            // lessonId: "",
-            pupilId: pupilId,
-          },
-        });
-
         return res.json({
           errCode: 200,
-          errMsg: "Update success!",
-          data: {
-            pupil: pupil,
-            pupils: newPupils,
-          },
+          errMsg: "present/absent pupil succes!",
+          data: pupil,
         });
-      } else {
-        return res.json({ errCode: 404, errMsg: "Pupil not found!" });
       }
     } catch (err) {
       console.log(err);
@@ -328,46 +379,44 @@ const LessonController = {
 
   absentPupilInClass: async (req, res) => {
     try {
-      let { classId, pupilId } = req.body;
-      console.log("Request Body4:", req.body);
+      let { classId, pupilId, lessonId, userId, status } = req.body;
+      // console.log("xxxxxxxxxxxxxxxxxxxxxx", req.body);
       if (!classId || !pupilId)
         return res.json({ errCode: 401, errMsg: "Invalid params!" });
 
-      let pupil = await ListPupils.findAll({
+      let find = await ListPupils.findOne({
         where: {
           classId: classId,
           pupilId: pupilId,
-          lessonId: "",
+          lessonId: lessonId,
+          userId: userId,
         },
         raw: true,
       });
 
-      if (pupil) {
-        await ListPupils.update(
-          { status: "absent" },
+      if (!find) {
+        let pupil = await ListPupils.create(
           {
-            where: {
-              classId: classId,
-              lessonId: "",
-              pupilId: pupilId,
-            },
-          }
+            classId,
+            pupilId,
+            lessonId,
+            userId,
+            status,
+          },
+          { returning: true }
         );
-
-        let newPupils = await ListPupils.findOne({
-          where: { classId: classId, lessonId: "", pupilId: pupilId },
-        });
-
         return res.json({
           errCode: 200,
-          errMsg: "Update success!",
-          data: {
-            pupil: pupil,
-            pupils: newPupils,
-          },
+          errMsg: "present/absent pupil succes!",
+          data: pupil,
         });
       } else {
-        return res.json({ errCode: 404, errMsg: "Pupil not found!" });
+        let pupil = await ListPupils.update({ status: status });
+        return res.json({
+          errCode: 200,
+          errMsg: "present/absent pupil succes!",
+          data: pupil,
+        });
       }
     } catch (err) {
       console.log(err);
@@ -378,103 +427,43 @@ const LessonController = {
     }
   },
 
-  updateOrder: async (req, res) => {
+  updateLesson: async (req, res) => {
     try {
-      let { user } = req,
-        { ID, name, tableId, listProduct } = req.body;
+      let { lessonId, name, status, content, timeFinish, timeStart } = req.body;
+      console.log("hhhhhhhhhhhh", req.body);
 
-      if (!ID) return res.json({ errCode: 401, errMsg: "Order not found!" });
-
-      let opts = {};
-
-      if (name) opts.name = name;
-      if (tableId) opts.tableId = tableId;
-
-      if (Object.keys(opts).length > 0) {
-        await Orders.update(opts, {
-          where: {
-            ID,
-          },
-        });
+      // Kiểm tra xem các tham số truyền vào có tồn tại không
+      if (
+        !lessonId ||
+        !name ||
+        !status ||
+        !content ||
+        !timeFinish ||
+        !timeStart
+      ) {
+        return res.json({ errCode: 401, errMsg: "Invalid params!" });
       }
 
-      if (listProduct.length > 0) {
-        let products = await OrderDetail.findAll({
-          where: {
-            orderID: ID,
-          },
-          raw: true,
-        });
+      // Tạo một đối tượng opts chứa các trường cần cập nhật
+      let opts = { name, status, content, timeFinish, timeStart };
+      console.log("0000000000000000000000000000000000000", moment(timeFinish));
+      // if (moment(timeFinish).isSame(moment(), "minute")) {
+      //   opts.status = "finished"; // Thay đổi trạng thái thành "finish"
+      //   console.log("1111111111111111111111111111", moment(timeFinish));
+      // }
+      // console.log("2222222222222222222222222", moment(timeFinis));
+      // Cập nhật bài học với các trường được chỉ định
+      let findLesson = await Lesson.update(opts, { where: { ID: lessonId } });
 
-        if (products?.length <= 0) {
-          for (let p of listProduct) {
-            await OrderDetail.create({
-              orderID: ID,
-              productId: p.ID,
-              quantity: p.quantity,
-            });
-          }
-        } else {
-          let listExistProduct = products;
-          for (let p of listProduct) {
-            let checkExists = listExistProduct.findIndex(
-              (pro) => pro.productId === p.ID
-            );
-            if (checkExists >= 0) {
-              if (p.quantity < 1) {
-                listExistProduct.push(p);
-              } else if (
-                p.quantity !== listExistProduct[checkExists]?.quantity
-              ) {
-                await OrderDetail.update(
-                  { quantity: p.quantity },
-                  {
-                    where: {
-                      orderID: ID,
-                      productId: p.ID,
-                    },
-                  }
-                );
-              }
-              listExistProduct.splice(checkExists, 1);
-            } else {
-              await OrderDetail.create({
-                orderID: ID,
-                productId: p.ID,
-                quantity: p.quantity,
-              });
-            }
-          }
-          if (listExistProduct.length > 0) {
-            await OrderDetail.destroy({
-              where: {
-                orderID: ID,
-                productId: {
-                  [Op.in]: listExistProduct.map((p) => p.productId),
-                },
-              },
-            });
-          }
-        }
+      // Kiểm tra xem bài học có được cập nhật thành công không
+      if (findLesson[0]) {
+        return res.json({ errCode: 200, errMsg: "Update success!" });
+      } else {
+        return res.json({ errCode: 401, errMsg: "Lesson not found!" });
       }
-
-      let newProducts = await OrderDetail.findAll({ where: { orderID: ID } });
-
-      return res.json({
-        errCode: 200,
-        errMsg: "Update success!",
-        data: {
-          ID,
-          ...opts,
-          products: newProducts,
-        },
-      });
     } catch (err) {
       console.log(err);
-      return res.json({
-        errCode: 500,
-        errMsg: "System error!",
-      });
+      return res.json({ errCode: 500, errMsg: "System error!" });
     }
   },
 };

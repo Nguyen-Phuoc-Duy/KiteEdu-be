@@ -12,7 +12,7 @@ const ordersRoutes = require("./ordersRoutes");
 const classesRoutes = require("./classesRoutes");
 const pupilsRoutes = require("./pupilsRoutes");
 const lessonsRoutes = require("./lessonsRoutes")
-const listPupilRoutes = require("./listPupilRoutes")
+// const listPupilRoutes = require("./listPupilRoutes")
 const ProductsController = require("../controllers/ProductsController");
 const TalbeController = require("../controllers/TableController");
 const SubjectController = require("../controllers/SubjectController");
@@ -43,6 +43,8 @@ function routes(app) {
 
   app.get("/users/getAll", authorization, UsersController.getAllUsers);
 
+  app.get("/getInforUser/:ID", authorization, UsersController.getInforUser);
+
   // app.get("/products/getAll", ProductsController.getAllProduct);
 
   // app.get("/tables/getAll", authorization, TalbeController.getAll);
@@ -65,7 +67,7 @@ function routes(app) {
 
   app.use("/pupil", authorization, pupilsRoutes);
 
-  app.use("/listpupil", authorization, listPupilRoutes);
+  // app.use("/listpupil", authorization, listPupilRoutes);
 
   app.use("/", (req, res) => {
     res.status(200).json({ message: "Connected to Service!" });

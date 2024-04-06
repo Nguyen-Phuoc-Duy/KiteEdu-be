@@ -9,9 +9,13 @@ const router = express.Router();
 // router.post("/getClassByUser", ClassController.getClassByUser);
 router.post("/getLessonByClass", LessonController.getLessonByClass);
 
+router.post("/getLessonByUser", LessonController.getLessonByUser);
+
 router.post("/getPupilByLesson", LessonController.getPupilByLesson);
 
 router.post("/createLesson", LessonController.createLesson);
+
+router.post("/updateLesson", LessonController.updateLesson);
 
 router.post("/presentPupilInClass", LessonController.presentPupilInClass);
 

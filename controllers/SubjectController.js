@@ -2,21 +2,21 @@ const Subjects = require("../models/subjects");
 
 const SubjectController = {
   createSubject: async (req, res) => {
-    let { name, status } = req.body;
+    let { name } = req.body;
 
-    if (!name )
-      return res.json({ errCode: 401, errMsg: "Invalid params!" });
+    if (!name) return res.json({ errCode: 401, errMsg: "Invalid params!" });
 
     let newSubject = await Subjects.create(
       {
         name,
-        status: status ? status : 'active',
+        status: "active",
       },
       { returning: true }
     );
 
     return res.json({
       errCode: 200,
+      errMsg: "Success",
       data: newSubject,
     });
   },
@@ -44,7 +44,7 @@ const SubjectController = {
   updateSubject: async (req, res) => {
     try {
       let { ID, name, status } = req.body;
-
+      console.log("TUTUTUTUTUY", req.body);
       if (!ID || !name || !status)
         return res.json({ errCode: 401, errMsg: "Invalid params!" });
       let opts = {};
@@ -57,21 +57,21 @@ const SubjectController = {
         if (userSubjectUpdated[0]) {
           return res.json({
             errCode: 200,
-            errMsg: "Update success!",
+            errMsg: "Success!",
           });
         } else {
           return res.json({ errCode: 401, errMsg: "Subject not found!" });
         }
       }
-        const subjectUpdated = await Subjects.update(
-          { status, name },
-          { where: { ID } }
-        );
-        if (subjectUpdated?.[0]) {
-          return res.json({ errCode: 200, errMsg: "Updated successfully!" });
-        } else {
-          return res.json({ errCode: 401, errMsg: "Subject not found!" });
-        }
+      const subjectUpdated = await Subjects.update(
+        { status, name },
+        { where: { ID } }
+      );
+      if (subjectUpdated?.[0]) {
+        return res.json({ errCode: 200, errMsg: "Success!" });
+      } else {
+        return res.json({ errCode: 401, errMsg: "Subject not found!" });
+      }
     } catch (err) {
       console.log(err);
       return res.json({
@@ -97,8 +97,6 @@ const SubjectController = {
   //     });
   //   }
   // },
-
-  
 };
 
 module.exports = SubjectController;
