@@ -14,7 +14,6 @@ const PupilController = {
       address,
       status,
     } = req.body;
-    console.log("hkhkhkhkhkh", req.body);
     if (
       !name ||
       !email ||
@@ -27,7 +26,7 @@ const PupilController = {
       !address 
       // ||!status
     )
-      return res.json({ errCode: 401, errMsg: "Invalid params!" });
+      return res.json({ errCode: 401, errMsg: "❌ Information must not be empty!" });
     // if (!name) return res.json({ errCode: 401, errMsg: "Invalid params1!" });
 
     // if (!email) return res.json({ errCode: 401, errMsg: "Invalid params2!" });
@@ -62,6 +61,7 @@ const PupilController = {
     return res.json({
       errCode: 200,
       data: newPupil,
+      errMsg: "✅ Create Success!",
     });
   },
   getAll: async (req, res) => {
@@ -71,14 +71,14 @@ const PupilController = {
       });
       return res.json({
         errCode: 200,
-        errMsg: "Success",
+        errMsg: "✅ Create Success!",
         data: listPupils,
       });
     } catch (err) {
       console.log(err);
       return res.json({
         errCode: 500,
-        errMsg: "System error!",
+        errMsg: "❎ System error❗️",
       });
     }
   },
@@ -100,7 +100,7 @@ const PupilController = {
       } = req.body;
       console.log("hhhhhhhhhhhh", req.body);
       if (!ID) {
-        return res.json({ errCode: 401, errMsg: "Invalid params!1" });
+        return res.json({ errCode: 401, errMsg: "❌ Information must not be empty!" });
       }
 
       // Initialize an object to store the update options
@@ -145,20 +145,20 @@ const PupilController = {
         if (userPupilUpdated[0]) {
           return res.json({
             errCode: 200,
-            errMsg: "Update success!",
+            errMsg: "✅ Update Success!",
           });
         } else {
-          return res.json({ errCode: 401, errMsg: "Pupil not found!" });
+          return res.json({ errCode: 401, errMsg: "❌ Pupil not found!" });
         }
       } else {
         // If no fields are provided to update, return success
-        return res.json({ errCode: 200, errMsg: "No fields to update!" });
+        return res.json({ errCode: 200, errMsg: "❌ No fields to update!" });
       }
     } catch (err) {
       console.log(err);
       return res.json({
         errCode: 500,
-        errMsg: "System error!",
+        errMsg: "❎ System error❗️",
       });
     }
   },

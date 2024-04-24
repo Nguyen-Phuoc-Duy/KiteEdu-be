@@ -1,10 +1,11 @@
 const Subjects = require("../models/subjects");
+const Users = require("../models/users");
 
 const SubjectController = {
   createSubject: async (req, res) => {
     let { name } = req.body;
 
-    if (!name) return res.json({ errCode: 401, errMsg: "Invalid params!" });
+    if (!name) return res.json({ errCode: 401, errMsg: "❌ Information must not be empty!" });
 
     let newSubject = await Subjects.create(
       {
@@ -16,7 +17,7 @@ const SubjectController = {
 
     return res.json({
       errCode: 200,
-      errMsg: "Success",
+      errMsg: "✅ Create Success!",
       data: newSubject,
     });
   },
@@ -30,14 +31,14 @@ const SubjectController = {
       });
       return res.json({
         errCode: 200,
-        errMsg: "Success",
+        errMsg: "✅ Success!",
         data: listSubjects,
       });
     } catch (err) {
       console.log(err);
       return res.json({
         errCode: 500,
-        errMsg: "System error!",
+        errMsg: "❌ System error!",
       });
     }
   },
@@ -46,7 +47,7 @@ const SubjectController = {
       let { ID, name, status } = req.body;
       console.log("TUTUTUTUTUY", req.body);
       if (!ID || !name || !status)
-        return res.json({ errCode: 401, errMsg: "Invalid params!" });
+        return res.json({ errCode: 401, errMsg: "❌ Information must not be empty!" });
       let opts = {};
       if (name || status) {
         opts.name = name;
@@ -54,13 +55,29 @@ const SubjectController = {
       }
       if (Object.keys(opts).length > 0) {
         let userSubjectUpdated = await Subjects.update(opts, { where: { ID } });
+        const findUser = await Users.findOne({
+          where: { subjectId: ID },
+          raw: true,
+        });
+        if (findUser) {
+          await Users.update(
+            {
+              locked: '1',
+            },
+            {
+              where: {
+                subjectId: findUser.ID,
+              },
+            }
+          );
+        }
         if (userSubjectUpdated[0]) {
           return res.json({
             errCode: 200,
-            errMsg: "Success!",
+            errMsg: `✅ Update Success!`,
           });
         } else {
-          return res.json({ errCode: 401, errMsg: "Subject not found!" });
+          return res.json({ errCode: 401, errMsg: "❎ Subject not found!" });
         }
       }
       const subjectUpdated = await Subjects.update(
@@ -68,15 +85,15 @@ const SubjectController = {
         { where: { ID } }
       );
       if (subjectUpdated?.[0]) {
-        return res.json({ errCode: 200, errMsg: "Success!" });
+        return res.json({ errCode: 200, errMsg: "✅ Update Success!" });
       } else {
-        return res.json({ errCode: 401, errMsg: "Subject not found!" });
+        return res.json({ errCode: 401, errMsg: "❌ Subject not found!" });
       }
     } catch (err) {
       console.log(err);
       return res.json({
         errCode: 500,
-        errMsg: "System error!",
+        errMsg: "❎ System error❗️",
       });
     }
   },

@@ -13,7 +13,11 @@ router.post("/getLessonByUser", LessonController.getLessonByUser);
 
 router.post("/getPupilByLesson", LessonController.getPupilByLesson);
 
+router.post("/getDetailLesson", LessonController.getDetailLesson)
+
 router.post("/createLesson", LessonController.createLesson);
+
+router.post("/addLesson", LessonController.addLesson);
 
 router.post("/updateLesson", LessonController.updateLesson);
 

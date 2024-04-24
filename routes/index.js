@@ -13,13 +13,14 @@ const classesRoutes = require("./classesRoutes");
 const pupilsRoutes = require("./pupilsRoutes");
 const lessonsRoutes = require("./lessonsRoutes")
 // const listPupilRoutes = require("./listPupilRoutes")
-const ProductsController = require("../controllers/ProductsController");
-const TalbeController = require("../controllers/TableController");
+// const ProductsController = require("../controllers/ProductsController");
+// const TalbeController = require("../controllers/TableController");
 const SubjectController = require("../controllers/SubjectController");
 const RoomController = require("../controllers/RoomController");
 const PupilController = require("../controllers/PupilController");
 const ClassController = require("../controllers/ClassController");
-const ListPupilController = require("../controllers/ListPupilController");
+// const ListPupilController = require("../controllers/ListPupilController");
+const LessonController = require("../controllers/LessonController");
 function routes(app) {
   // app.use('/news', newRouter);
 
@@ -43,6 +44,8 @@ function routes(app) {
 
   app.get("/users/getAll", authorization, UsersController.getAllUsers);
 
+  app.get("/users/getEmployee", authorization, UsersController.getEmployee);
+
   app.get("/getInforUser/:ID", authorization, UsersController.getInforUser);
 
   // app.get("/products/getAll", ProductsController.getAllProduct);
@@ -56,6 +59,10 @@ function routes(app) {
   app.get("/pupils/getAll", authorization, PupilController.getAll);
 
   app.get("/classes/getAll", authorization, ClassController.getAll);
+
+  app.get("/classes/getAllClassesActive", authorization, ClassController.getAllClassesActive);
+
+  app.get("/lessons/getAll", authorization, LessonController.getAll);
 
   app.use("/admin", authAdmin, adminRoutes);
 

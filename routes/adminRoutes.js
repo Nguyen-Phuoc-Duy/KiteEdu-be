@@ -1,8 +1,8 @@
 const express = require('express');
-const OrdersController = require('../controllers/OrdersController');
-const ProductsController = require('../controllers/ProductsController');
+// const OrdersController = require('../controllers/OrdersController');
+// const ProductsController = require('../controllers/ProductsController');
 const UsersController = require('../controllers/UsersController');
-const TalbeController = require('../controllers/TableController');
+// const TalbeController = require('../controllers/TableController');
 const SubjectController = require('../controllers/SubjectController');
 const RoomController = require('../controllers/RoomController');
 const PupilController = require('../controllers/PupilController')

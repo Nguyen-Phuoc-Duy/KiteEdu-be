@@ -23,7 +23,7 @@ async function authorization(req, res, next) {
         !info?.email ||
         (info?.email && info.email !== "ROOT" && !checkEmail(info.email))
       ) {
-        return res.json({ errCode: 400, errMsg: "Token is wrong!" });
+        return res.json({ errCode: 400, errMsg: "❌ Token is wrong!" });
       }
       const user = await Users.findOne({
         where: {
@@ -32,22 +32,22 @@ async function authorization(req, res, next) {
         raw: true,
       });
       if (!user) {
-        return res.json({ errCode: 400, errMsg: "User not found!" });
+        return res.json({ errCode: 400, errMsg: "❌ User not found!" });
       } else if (user.locked) {
-        return res.json({ errCode: 401, errMsg: "User is locked!" });
+        return res.json({ errCode: 401, errMsg: "❌ User is locked!" });
       }
       req.user = user;
       return next();
     }
 
     if (verifyToken?.errCode === 1) {
-      return res.json({ errCode: 400, errMsg: "Token expired!" });
+      return res.json({ errCode: 400, errMsg: "❌ Token expired!" });
     }
 
-    return res.json({ errCode: 400, errMsg: "Forbidden!" });
+    return res.json({ errCode: 400, errMsg: "❌ Forbidden!" });
   } catch (e) {
     console.log(e);
-    return res.json({ errCode: 500, errMsg: "System Error!" });
+    return res.json({ errCode: 500, errMsg: "❎ System error❗️" });
   }
 }
 

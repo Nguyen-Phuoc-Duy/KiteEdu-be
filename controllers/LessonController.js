@@ -1,12 +1,150 @@
 const Lesson = require("../models/lessons");
 const Classes = require("../models/classes");
 const ListPupils = require("../models/listpupils");
+const Rooms = require("../models/rooms");
 const Pupils = require("../models/pupils");
-const Subjects = require("../models/subjects");
 const Users = require("../models/users");
 const { Op } = require("sequelize");
-// const moment = require("moment");
+const moment = require("moment");
 const LessonController = {
+  getAll0: async (req, res) => {
+    try {
+      let listLessons = await Lesson.findAll({
+        order: [["createdAt", "DESC"]],
+      });
+
+      for (let lesson of listLessons) {
+        if (lesson && lesson.ID) {
+          let details = await ListPupils.findAll({
+            where: {
+              lessonId: lesson.ID,
+            },
+            raw: true,
+          });
+
+          let listLesson = [];
+          for (let detail of details) {
+            if (detail && detail.pupilId) {
+              let pupil = await ListPupils.findOne({
+                where: {
+                  pupilId: detail.pupilId,
+                  lessonId: detail.lessonId,
+                },
+                raw: true,
+              });
+              listLesson.push(pupil);
+            }
+          }
+          lesson.pupils = listLesson;
+
+          let detailsS = await ListPupils.findAll({
+            where: {
+              lessonId: "",
+            },
+            raw: true,
+          });
+
+          let listLessonS = [];
+          for (let detail of detailsS) {
+            if (detail && detail.pupilId) {
+              let pupilS = await ListPupils.findOne({
+                where: {
+                  pupilId: detail.pupilId,
+                  lessonId: "",
+                },
+                raw: true,
+              });
+              listLessonS.push(pupilS);
+            }
+          }
+          lesson.pupilsSum = listLessonS || []; // Nếu không có phần tử, gán mảng rỗng
+
+          // Lưu các thay đổi vào cơ sở dữ liệu
+          await lesson.save();
+        }
+      }
+
+      return res.json({
+        errCode: 200,
+        errMsg: "✅ Success",
+        data: listLessons,
+      });
+    } catch (err) {
+      console.log(err);
+      return res.json({
+        errCode: 500,
+        errMsg: "❎ System error❗️",
+      });
+    }
+  },
+  getAll: async (req, res) => {
+    try {
+      let listLessons = await Lesson.findAll({
+        raw: true,
+        order: [["createdAt", "DESC"]],
+      });
+      for (let lesson of listLessons) {
+        if (lesson?.ID) {
+          let details = await ListPupils.findAll({
+            where: {
+              lessonId: lesson?.ID,
+            },
+            raw: true,
+          });
+          let listLesson = []; 
+          for (let detail of details) {
+            if (detail?.pupilId) {
+              let pupil = await ListPupils.findOne({
+                where: {
+                  pupilId: detail.pupilId,
+                  lessonId: detail.lessonId,
+                },
+                raw: true,
+              });
+              listLesson.push({
+                ...pupil,
+              });
+            }
+          }
+          lesson.pupils = listLesson;
+          let detailsS = await ListPupils.findAll({
+            where: {
+              lessonId: "",
+            },
+            raw: true,
+          });
+          let listLessonS = [];
+          for (let detail of detailsS) {
+            if (detail?.pupilId) {
+              let pupilS = await ListPupils.findOne({
+                where: {
+                  pupilId: detail.pupilId,
+                  lessonId: "",
+                },
+                raw: true,
+              });
+              listLessonS.push({
+                ...pupilS,
+              });
+            }
+          }
+          lesson.pupilsSum = listLessonS;
+        }
+      }
+      return res.json({
+        errCode: 200,
+        errMsg: "Success",
+        data: listLessons,
+      });
+    } catch (err) {
+      console.log(err);
+      return res.json({
+        errCode: 500,
+        errMsg: "System error!",
+      });
+    }
+  },
+
   getLessonByClass: async (req, res) => {
     // Định nghĩa hàm getByTableID với tham số req và res
     try {
@@ -29,10 +167,20 @@ const LessonController = {
       for (let lesson of listLessons) {
         if (lesson?.ID) {
           // Kiểm tra xem đơn hàng có ID không
+
+          // Tìm thông tin lớp học dựa trên classId của từng bài học
+          let classData = await Classes.findOne({
+            where: { ID: lesson.classId },
+            attributes: ["status"], // Chỉ lấy trường status
+            raw: true,
+          });
+
+          // Gán trạng thái vào trường statusClass của bài học
+          lesson.statusClass = classData.status;
           // Lấy chi tiết đơn hàng từ cơ sở dữ liệu, dựa trên ID của đơn hàng hiện tại
           let details = await ListPupils.findAll({
             where: {
-              // lessonId: lesson.ID,
+              lessonId: lesson?.ID,
               classId: ID,
             },
             raw: true,
@@ -46,6 +194,7 @@ const LessonController = {
               let pupil = await ListPupils.findOne({
                 where: {
                   pupilId: detail.pupilId,
+                  lessonId: detail.lessonId,
                 },
                 raw: true,
               });
@@ -58,6 +207,38 @@ const LessonController = {
           }
           // Gán danh sách sản phẩm vào đơn hàng
           lesson.pupils = listLesson;
+
+          /////////////////////////////
+
+          let detailsS = await ListPupils.findAll({
+            where: {
+              lessonId: "",
+              classId: ID,
+            },
+            raw: true,
+          });
+          let listLessonS = []; // Khởi tạo mảng để lưu trữ danh sách sản phẩm trong đơn hàng
+          // Duyệt qua từng chi tiết đơn hàng
+          for (let detail of detailsS) {
+            if (detail?.pupilId) {
+              // Kiểm tra xem chi tiết đơn hàng có ID sản phẩm không
+              // Lấy thông tin của sản phẩm từ cơ sở dữ liệu dựa trên ID sản phẩm
+              let pupilS = await ListPupils.findOne({
+                where: {
+                  pupilId: detail.pupilId,
+                  lessonId: "",
+                },
+                raw: true,
+              });
+              // Thêm thông tin sản phẩm và số lượng vào danh sách sản phẩm trong đơn hàng
+              listLessonS.push({
+                ...pupilS,
+                // quantity: detail.quantity,
+              });
+            }
+          }
+          // Gán danh sách sản phẩm vào đơn hàng
+          lesson.pupilsSum = listLessonS;
         }
       }
 
@@ -71,16 +252,19 @@ const LessonController = {
     }
   },
 
-  getLessonByUser1: async (req, res) => {
-    // Định nghĩa hàm getByTableID với tham số req và res
+  getLessonByUser: async (req, res) => {
     try {
-      // Bắt đầu khối try để xử lý các lệnh có thể sinh ra ngoại lệ
-      let { ID } = req.body; // Lấy giá trị của tham số ID từ yêu cầu HTTP
-      //console.log("--the identity", ID);
-      // console.log("gggggggggggggg", req.body);
-      if (!ID) return res.json({ errCode: 401, errMsg: "User not found!" }); // Kiểm tra xem có ID không, nếu không thì trả về thông báo lỗi
+      let { ID } = req.body;
 
-      // Lấy danh sách đơn hàng từ cơ sở dữ liệu, dựa trên ID của bàn, sắp xếp theo thời gian tạo giảm dần
+      // Kiểm tra ID không được bỏ trống
+      if (!ID) {
+        return res.json({
+          errCode: 401,
+          errMsg: "ID must not be empty!",
+        });
+      }
+
+      // Tìm các bài học mà người dùng đã tạo
       let listLessons = await Lesson.findAll({
         where: {
           userId: ID,
@@ -88,18 +272,90 @@ const LessonController = {
         raw: true,
         order: [["createdAt", "DESC"]],
       });
+      for (let lesson of listLessons) {
+        if (lesson?.ID) {
+          // Kiểm tra xem đơn hàng có ID không
+          // Lấy chi tiết đơn hàng từ cơ sở dữ liệu, dựa trên ID của đơn hàng hiện tại
+          let details = await ListPupils.findAll({
+            where: {
+              lessonId: lesson?.ID,
+              userId: ID,
+            },
+            raw: true,
+          });
+          let listLesson = []; // Khởi tạo mảng để lưu trữ danh sách sản phẩm trong đơn hàng
+          // Duyệt qua từng chi tiết đơn hàng
+          for (let detail of details) {
+            if (detail?.pupilId) {
+              // Kiểm tra xem chi tiết đơn hàng có ID sản phẩm không
+              // Lấy thông tin của sản phẩm từ cơ sở dữ liệu dựa trên ID sản phẩm
+              let pupil = await ListPupils.findOne({
+                where: {
+                  pupilId: detail.pupilId,
+                  lessonId: detail.lessonId,
+                },
+                raw: true,
+              });
+              // Thêm thông tin sản phẩm và số lượng vào danh sách sản phẩm trong đơn hàng
+              listLesson.push({
+                ...pupil,
+                // quantity: detail.quantity,
+              });
+            }
+          }
+          // Gán danh sách sản phẩm vào đơn hàng
+          lesson.pupils = listLesson;
 
-      // Trả về danh sách đơn hàng đã được xử lý và thông báo thành công
-      return res.json({ errCode: 200, errMsg: "Success!", data: listLessons });
+          /////////////////////////////
+
+          let detailsS = await ListPupils.findAll({
+            where: {
+              lessonId: "",
+              userId: ID,
+            },
+            raw: true,
+          });
+          let listLessonS = []; // Khởi tạo mảng để lưu trữ danh sách sản phẩm trong đơn hàng
+          // Duyệt qua từng chi tiết đơn hàng
+          for (let detail of detailsS) {
+            if (detail?.pupilId) {
+              // Kiểm tra xem chi tiết đơn hàng có ID sản phẩm không
+              // Lấy thông tin của sản phẩm từ cơ sở dữ liệu dựa trên ID sản phẩm
+              let pupilS = await ListPupils.findOne({
+                where: {
+                  pupilId: detail.pupilId,
+                  lessonId: "",
+                },
+                raw: true,
+              });
+              // Thêm thông tin sản phẩm và số lượng vào danh sách sản phẩm trong đơn hàng
+              listLessonS.push({
+                ...pupilS,
+                // quantity: detail.quantity,
+              });
+            }
+          }
+          // Gán danh sách sản phẩm vào đơn hàng
+          lesson.pupilsSum = listLessonS;
+        }
+      }
+      return res.json({
+        errCode: 200,
+        errMsg: "Success",
+        data: listLessons,
+      });
     } catch (err) {
-      // Bắt các ngoại lệ nếu có
-      console.log(err); // In lỗi ra console để ghi nhận và debug
-      // Trả về thông báo lỗi nếu có lỗi xảy ra
-      return res.json({ errCode: 500, errMsg: "System error!" });
+      console.log(err);
+      return res.json({
+        errCode: 500,
+        errMsg: "System error!",
+      });
     }
   },
-  getLessonByUser: async (req, res) => {
+
+  getLessonByUser0: async (req, res) => {
     try {
+      let { ID } = req.body;
       let listLessons = await Lesson.findAll({
         order: [["createdAt", "DESC"]],
       });
@@ -117,7 +373,7 @@ const LessonController = {
     }
   },
 
-  createLesson: async (req, res) => {
+  createLesson0: async (req, res) => {
     try {
       let {
         // status,
@@ -157,6 +413,27 @@ const LessonController = {
           },
           { returning: true }
         );
+
+        // const findRoom = await Rooms.findOne({
+        //   where: { ID: roomId },
+        //   raw: true,
+        // });
+        // if (!findRoom) {
+        //   return res.json({
+        //     errCode: 401,
+        //     errMsg: "Room not found or deleted!",
+        //   });
+        // } else {
+        //   let newLesson = await Rooms.update(
+        //     {
+        //       status: "full",
+        //     },
+        //     {
+        //       where: {
+        //         ID: roomId,
+        //       },
+        //     }
+        //   );
         // newLesson = newLesson.dataValues;
         // if (listPupil?.length > 0) {
         //   let pupilsCreated = [];
@@ -191,6 +468,350 @@ const LessonController = {
     }
   },
 
+  createLesson: async (req, res) => {
+    try {
+      let { name, userId, classId, roomId, content, timeStart, timeFinish } =
+        req.body;
+
+      // Check if userId and classId are provided
+      if (!userId || !classId)
+        return res.json({ errCode: 401, errMsg: "Invalid params!" });
+
+      const findClass = await Classes.findOne({
+        where: { ID: classId, userId: userId },
+        raw: true,
+      });
+
+      if (!findClass) {
+        return res.json({
+          errCode: 401,
+          errMsg: "Lecturer does not match with the class!",
+        });
+      }
+
+      // Create a new lesson
+      let newLesson = await Lesson.create(
+        {
+          name,
+          status: "started",
+          userId,
+          classId,
+          roomId,
+          content,
+          timeStart: moment(timeStart),
+          timeFinish: moment(timeFinish),
+        },
+        { returning: true }
+      );
+
+      // Check if the room exists and update its status
+      const findRoom = await Rooms.findOne({
+        where: { ID: roomId },
+        raw: true,
+      });
+      if (!findRoom) {
+        return res.json({
+          errCode: 401,
+          errMsg: "Room not found or deleted!",
+        });
+      }
+
+      // Update the room status based on current time
+      if (moment().isBefore(moment(timeStart))) {
+        await Rooms.update(
+          {
+            status: "empty",
+          },
+          {
+            where: {
+              ID: findRoom.ID,
+            },
+          }
+        );
+        await Lesson.update(
+          {
+            status: "prepare",
+          },
+          {
+            where: {
+              ID: newLesson.ID,
+            },
+          }
+        );
+
+        const remainingTime1 = moment(timeStart).diff(moment());
+        setTimeout(async () => {
+          await Rooms.update(
+            {
+              status: "full",
+            },
+            {
+              where: {
+                ID: findRoom.ID,
+              },
+            }
+          );
+          await Lesson.update(
+            {
+              status: "started",
+            },
+            {
+              where: {
+                ID: newLesson.ID,
+              },
+            }
+          );
+        }, remainingTime1);
+
+        const remainingTime2 = moment(timeFinish).diff(moment());
+        setTimeout(async () => {
+          await Rooms.update(
+            {
+              status: "empty",
+            },
+            {
+              where: {
+                ID: findRoom.ID,
+              },
+            }
+          );
+          await Lesson.update(
+            {
+              status: "finished",
+            },
+            {
+              where: {
+                ID: newLesson.ID,
+              },
+            }
+          );
+        }, remainingTime2);
+      } else if (
+        moment().isAfter(moment(timeStart)) &&
+        moment().isBefore(moment(timeFinish))
+      ) {
+        await Rooms.update(
+          {
+            status: "full",
+          },
+          {
+            where: {
+              ID: findRoom.ID,
+            },
+          }
+        );
+        await Lesson.update(
+          {
+            status: "started",
+          },
+          {
+            where: {
+              ID: newLesson.ID,
+            },
+          }
+        );
+
+        const remainingTime = moment(timeFinish).diff(moment());
+        setTimeout(async () => {
+          await Rooms.update(
+            {
+              status: "empty",
+            },
+            {
+              where: {
+                ID: findRoom.ID,
+              },
+            }
+          );
+          // Update the lesson status to "finished"
+          await Lesson.update(
+            {
+              status: "finished",
+            },
+            {
+              where: {
+                ID: newLesson.ID,
+              },
+            }
+          );
+        }, remainingTime);
+      } else if (moment().isAfter(moment(timeFinish))) {
+        await Rooms.update(
+          {
+            status: "empty",
+          },
+          {
+            where: {
+              ID: findRoom.ID,
+            },
+          }
+        );
+        await Lesson.update(
+          {
+            status: "finished",
+          },
+          {
+            where: {
+              ID: newLesson.ID,
+            },
+          }
+        );
+      }
+
+      return res.json({
+        errCode: 200,
+        errMsg: "Create lesson success!",
+        data: newLesson,
+      });
+    } catch (err) {
+      console.log(err);
+      return res.json({
+        errCode: 500,
+        errMsg: "System Error!",
+      });
+    }
+  },
+  addLesson: async (req, res) => {
+    try {
+      let { name, userId, classId, roomId, content, timeStart, timeFinish } =
+        req.body;
+      console.log("ADD LESSON", req.body);
+      if (!userId || !classId)
+        return res.json({ errCode: 401, errMsg: "Invalid params!" });
+      const findClass = await Classes.findOne({
+        where: { ID: classId },
+        raw: true,
+      });
+      if (!findClass) {
+        return res.json({
+          errCode: 401,
+          errMsg: "Class not found or deleted!",
+        });
+      }
+      const subjectIdOfClass = findClass.subjectId;
+
+      // Kiểm tra xem userId có phù hợp với subjectId của class hay không
+      const findUser = await Users.findOne({
+        where: { ID: userId, subjectId: subjectIdOfClass },
+        raw: true,
+      });
+
+      // Nếu không tìm thấy user có subjectId phù hợp, trả về lỗi
+      if (!findUser) {
+        return res.json({
+          errCode: 401,
+          errMsg: "User's subjectId does not match with the class's subjectId!",
+        });
+      }
+
+      let newLesson = await Lesson.create(
+        {
+          name,
+          status: "started",
+          userId,
+          classId,
+          roomId,
+          content,
+          timeStart: moment(timeStart),
+          timeFinish: moment(timeFinish),
+        },
+        { returning: true }
+      );
+      // const findRoom = await Rooms.findOne({
+      //   where: { ID: roomId },
+      //   raw: true,
+      // });
+      // if (!findRoom) {
+      //   return res.json({
+      //     errCode: 401,
+      //     errMsg: "Room not found or deleted!",
+      //   });
+      // }
+      // if (moment().isBefore(moment(timeFinish))) {
+      //   await Rooms.update(
+      //     {
+      //       status: "full",
+      //     },
+      //     {
+      //       where: {
+      //         ID: roomId,
+      //       },
+      //     }
+      //   );
+      //   await Lesson.update(
+      //     {
+      //       status: "started",
+      //     },
+      //     {
+      //       where: {
+      //         ID: newLesson.ID,
+      //       },
+      //     }
+      //   );
+      //   // Calculate the duration between timeStart and timeFinish in milliseconds
+      // const duration = moment(timeFinish).diff(moment());
+
+      // // After the calculated duration, update the room status to "empty" and the lesson status to "finished"
+      // setTimeout(async () => {
+      //   await Rooms.update(
+      //     {
+      //       status: "empty",
+      //     },
+      //     {
+      //       where: {
+      //         ID: roomId,
+      //       },
+      //     }
+      //   );
+      //   // Update the lesson status to "finished"
+      //   await Lesson.update(
+      //     {
+      //       status: "finished",
+      //     },
+      //     {
+      //       where: {
+      //         ID: newLesson.ID,
+      //       },
+      //     }
+      //   );
+      // }, duration);
+      // }
+      // else {
+      //   await Rooms.update(
+      //     {
+      //       status: "empty",
+      //     },
+      //     {
+      //       where: {
+      //         ID: roomId,
+      //       },
+      //     }
+      //   );
+      //   // await Lesson.update(
+      //   //   {
+      //   //     status: "started",
+      //   //   },
+      //   //   {
+      //   //     where: {
+      //   //       ID: newLesson.ID,
+      //   //     },
+      //   //   }
+      //   // );
+      // }
+
+      return res.json({
+        errCode: 200,
+        errMsg: "Create lesson success!",
+        data: newLesson,
+      });
+    } catch (err) {
+      console.log(err);
+      return res.json({
+        errCode: 500,
+        errMsg: "System Error!",
+      });
+    }
+  },
   getPupilByLesson1: async (req, res) => {
     try {
       let { classId, lessonId } = req.body;
@@ -429,8 +1050,8 @@ const LessonController = {
 
   updateLesson: async (req, res) => {
     try {
-      let { lessonId, name, status, content, timeFinish, timeStart } = req.body;
-      console.log("hhhhhhhhhhhh", req.body);
+      let { lessonId, name, status, content, timeFinish, timeStart, roomId } =
+        req.body;
 
       // Kiểm tra xem các tham số truyền vào có tồn tại không
       if (
@@ -439,21 +1060,168 @@ const LessonController = {
         !status ||
         !content ||
         !timeFinish ||
-        !timeStart
+        !timeStart ||
+        !roomId
       ) {
         return res.json({ errCode: 401, errMsg: "Invalid params!" });
       }
-
+      console.log("checkRoom", req.body);
       // Tạo một đối tượng opts chứa các trường cần cập nhật
-      let opts = { name, status, content, timeFinish, timeStart };
-      console.log("0000000000000000000000000000000000000", moment(timeFinish));
-      // if (moment(timeFinish).isSame(moment(), "minute")) {
-      //   opts.status = "finished"; // Thay đổi trạng thái thành "finish"
-      //   console.log("1111111111111111111111111111", moment(timeFinish));
-      // }
-      // console.log("2222222222222222222222222", moment(timeFinis));
-      // Cập nhật bài học với các trường được chỉ định
+      let opts = { name, status, content, timeFinish, timeStart, roomId };
+
       let findLesson = await Lesson.update(opts, { where: { ID: lessonId } });
+
+      // Check if the room exists and update its status
+      const findRoom = await Rooms.findOne({
+        where: { ID: roomId },
+        raw: true,
+      });
+      if (!findRoom) {
+        return res.json({
+          errCode: 401,
+          errMsg: "Room not found or deleted!",
+        });
+      }
+      if (moment().isBefore(moment(timeStart))) {
+        await Rooms.update(
+          {
+            status: "empty",
+          },
+          {
+            where: {
+              ID: findRoom.ID,
+            },
+          }
+        );
+        await Lesson.update(
+          {
+            status: "prepare",
+          },
+          {
+            where: {
+              ID: lessonId,
+            },
+          }
+        );
+
+        const remainingTime1 = moment(timeStart).diff(moment());
+        setTimeout(async () => {
+          await Rooms.update(
+            {
+              status: "full",
+            },
+            {
+              where: {
+                ID: findRoom.ID,
+              },
+            }
+          );
+          await Lesson.update(
+            {
+              status: "started",
+            },
+            {
+              where: {
+                ID: lessonId,
+              },
+            }
+          );
+        }, remainingTime1);
+
+        const remainingTime2 = moment(timeFinish).diff(moment());
+        setTimeout(async () => {
+          await Rooms.update(
+            {
+              status: "empty",
+            },
+            {
+              where: {
+                ID: findRoom.ID,
+              },
+            }
+          );
+          await Lesson.update(
+            {
+              status: "finished",
+            },
+            {
+              where: {
+                ID: lessonId,
+              },
+            }
+          );
+        }, remainingTime2);
+      } else if (
+        moment().isAfter(moment(timeStart)) &&
+        moment().isBefore(moment(timeFinish))
+      ) {
+        await Rooms.update(
+          {
+            status: "full",
+          },
+          {
+            where: {
+              ID: findRoom.ID,
+            },
+          }
+        );
+        await Lesson.update(
+          {
+            status: "started",
+          },
+          {
+            where: {
+              ID: lessonId,
+            },
+          }
+        );
+
+        const remainingTime = moment(timeFinish).diff(moment());
+        setTimeout(async () => {
+          await Rooms.update(
+            {
+              status: "empty",
+            },
+            {
+              where: {
+                ID: findRoom.ID,
+              },
+            }
+          );
+          // Update the lesson status to "finished"
+          await Lesson.update(
+            {
+              status: "finished",
+            },
+            {
+              where: {
+                ID: lessonId,
+              },
+            }
+          );
+        }, remainingTime);
+      } else if (moment().isAfter(moment(timeFinish))) {
+        await Rooms.update(
+          {
+            status: "empty",
+          },
+          {
+            where: {
+              ID: findRoom.ID,
+            },
+          }
+        );
+        await Lesson.update(
+          {
+            status: "finished",
+          },
+          {
+            where: {
+              ID: lessonId,
+            },
+          }
+        );
+      }
 
       // Kiểm tra xem bài học có được cập nhật thành công không
       if (findLesson[0]) {
@@ -461,6 +1229,43 @@ const LessonController = {
       } else {
         return res.json({ errCode: 401, errMsg: "Lesson not found!" });
       }
+    } catch (err) {
+      console.log(err);
+      return res.json({ errCode: 500, errMsg: "System error!" });
+    }
+  },
+
+  getDetailLesson: async (req, res) => {
+    try {
+      let { ID } = req.body;
+      console.log("mmmmmmmmmmmmmmmmmmmmm", req.body);
+      if (!ID)
+        return res.json({ errCode: 401, errMsg: "❌ Lesson not found!" });
+
+      const detailClss = await Lesson.findAll({
+        where: {
+          ID: ID,
+        },
+        raw: true,
+        order: [["createdAt", "DESC"]],
+      });
+
+      const pupils = await ListPupils.findAll({
+        where: {
+          lessonId: ID,
+        },
+      });
+
+      // Thêm thông tin về học sinh vào mỗi đối tượng trong mảng detailClss
+      detailClss.forEach((clss) => {
+        clss.pupils = pupils;
+      });
+
+      return res.json({
+        errCode: 200,
+        errMsg: "✅ Success!",
+        data: detailClss,
+      });
     } catch (err) {
       console.log(err);
       return res.json({ errCode: 500, errMsg: "System error!" });
