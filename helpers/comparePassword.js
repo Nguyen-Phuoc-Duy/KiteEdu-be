@@ -1,13 +1,12 @@
-const { compareSync } = require('bcrypt');
-
+const { compareSync } = require("bcrypt");
 
 function comparePassword(password, hash) {
-    try{
-        return compareSync(password, hash);
-    }catch(err) {
-        console.log(err);
-        return false;
-    }
+  try {
+    return compareSync(password, hash);
+  } catch (err) {
+    console.log("errerr", err);
+    return false;
+  }
 }
 
 module.exports = comparePassword;

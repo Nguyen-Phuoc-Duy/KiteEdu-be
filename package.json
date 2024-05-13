@@ -17,6 +17,7 @@
     "jsonwebtoken": "^9.0.0",
     "moment": "^2.29.4",
     "mysql2": "^3.3.5",
+    "node-cron": "^3.0.3",
     "nodemailer": "^6.9.3",
     "nodemon": "^2.0.22",
     "sequelize": "^6.32.0"

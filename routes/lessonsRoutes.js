@@ -21,6 +21,8 @@ router.post("/addLesson", LessonController.addLesson);
 
 router.post("/updateLesson", LessonController.updateLesson);
 
+router.post("/updateLessonInLesson", LessonController.updateLessonInLesson);
+
 router.post("/presentPupilInClass", LessonController.presentPupilInClass);
 
 router.post("/absentPupilInClass", LessonController.absentPupilInClass);

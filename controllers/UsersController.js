@@ -221,9 +221,9 @@ const UsersController = {
           opts.email = email;
         }
         if(password) {
-          if (!comparePassword(currentPWD, user.password)) {
-              return res.json({ errCode: 200, errMsg: '❌ Invalid current password!' })
-          }
+          // if (!comparePassword(currentPWD, user.password)) {
+          //     return res.json({ errCode: 401, errMsg: '❌ Invalid current password!' })
+          // }
           let passwordHash = hashPassword(password)
           if(!passwordHash) return res.json({ errCode: 500, errMsg: '❌ System Error!'})
           opts.password = passwordHash
