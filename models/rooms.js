@@ -8,18 +8,11 @@ const Rooms = sequelize.define("Rooms", {
     primaryKey: true,
   },
   name: DataTypes.STRING,
-  // status: {
-  //   type: DataTypes.ENUM("empty", "full", "fix"),
-  //   defaultValue: "empty",
-  // },
   status: {
     type: DataTypes.STRING,
     defaultValue: "empty",
   }, // started / finished / cancelled
-  // isDeleted: {
-  //     type: DataTypes.BOOLEAN,
-  //     defaultValue: false
-  // }
+
 });
 
 module.exports = Rooms;

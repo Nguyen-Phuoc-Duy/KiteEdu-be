@@ -5,7 +5,7 @@ const RoomController = {
     let { name, status } = req.body;
     console.log("klklk", req.body);
     if (!name )
-      return res.json({ errCode: 401, errMsg: "Invalid params!" });
+      return res.json({ errCode: 401, errMsg: "❌ Information must not be empty!" });
 
     let newRoom = await Rooms.create(
       {
@@ -17,6 +17,7 @@ const RoomController = {
 
     return res.json({
       errCode: 200,
+      errMsg: "✅ Create Success!",
       data: newRoom,
     });
   },
@@ -27,14 +28,14 @@ const RoomController = {
       });
       return res.json({
         errCode: 200,
-        errMsg: "Success",
+        errMsg: "✅ Success!",
         data: listRooms,
       });
     } catch (err) {
       console.log(err);
       return res.json({
         errCode: 500,
-        errMsg: "System error!",
+        errMsg: "❎ System error❗️",
       });
     }
   },
@@ -43,7 +44,7 @@ const RoomController = {
       let { ID, name, status } = req.body;
       console.log("hhhhhhhhhhhh", req.body);
       if (!ID || !name || !status)
-        return res.json({ errCode: 401, errMsg: "Invalid params!" });
+        return res.json({ errCode: 401, errMsg: "❌ Information must not be empty!" });
       let opts = {};
       if (name || status) {
         opts.name = name;
@@ -54,10 +55,10 @@ const RoomController = {
         if (userRoomUpdated[0]) {
           return res.json({
             errCode: 200,
-            errMsg: "Update success!",
+            errMsg: "✅ Update Success!",
           });
         } else {
-          return res.json({ errCode: 401, errMsg: "Subject not found!" });
+          return res.json({ errCode: 401, errMsg: "❌ Room not found!" });
         }
       }
       const roomUpdated = await Rooms.update(
@@ -65,15 +66,15 @@ const RoomController = {
         { where: { ID } }
       );
       if (roomUpdated?.[0]) {
-        return res.json({ errCode: 200, errMsg: "Updated successfully!" });
+        return res.json({ errCode: 200, errMsg: "✅ Update Success!" });
       } else {
-        return res.json({ errCode: 401, errMsg: "Subject not found!" });
+        return res.json({ errCode: 401, errMsg: "❌ Room not found!" });
       }
     } catch (err) {
       console.log(err);
       return res.json({
         errCode: 500,
-        errMsg: "System error!",
+        errMsg: "❎ System error❗️",
       });
     }
   },

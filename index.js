@@ -54,7 +54,7 @@ sequelize.sync();
 checkAdminROOT();
 
 app.listen(process.env.PORT, () => {
-  let password = hashPassword("a");
+  let password = hashPassword("admin@123");
   console.log(
     `App listening at http://localhost:${process.env.PORT}/`,
     password

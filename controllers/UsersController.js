@@ -72,15 +72,15 @@ const UsersController = {
         !gender &&
         !subjectId
       )
-        return res.json({ errCode: 500, errMsg: "Invalid params!" });
+        return res.json({ errCode: 500, errMsg: "❌ Information must not be empty!" });
 
       if (!["manager", "admin"].includes(user.role))
-        return res.json({ errCode: 401, errMsg: "Forbidden!" });
+        return res.json({ errCode: 401, errMsg: "❌ You has no permission!" });
 
       if (checkEmail(email)) {
         let passwordHash = hashPassword(password);
         if (!passwordHash)
-          return res.json({ errCode: 500, errMsg: "System Error!" });
+          return res.json({ errCode: 500, errMsg: "❎ System error❗️" });
         let userCreated = await Users.create(
           {
             name,
@@ -91,8 +91,8 @@ const UsersController = {
             phone,
             birth,
             gender,
-            subjectId: subjectId ? subjectId : '',
-            role: subjectId ? 'employee' : 'manager'
+            subjectId: subjectId ? subjectId : "",
+            role: subjectId ? "employee" : "manager",
           },
           { returning: true }
         );
@@ -117,31 +117,31 @@ const UsersController = {
         delete userCreated.password;
         res.json({
           errCode: 200,
-          errMsg: "Register Account Success!",
+          errMsg: "✅ Create Success!",
           data: userCreated,
         });
       } else {
-        return res.json({ errCode: 500, errMsg: "Email wrong format!" });
+        return res.json({ errCode: 500, errMsg: "❌ Email wrong format!" });
       }
     } catch (err) {
       console.log(err);
-      return res.json({ errCode: 500, errMsg: "Register Account failed!" });
+      return res.json({ errCode: 500, errMsg: "❌ Create Failure!" });
     }
   },
   login: async (req, res) => {
     try {
       let { email, password } = req.body;
       if (!email && !password)
-        return res.json({ errCode: 500, errMsg: "Invalid params!" });
+        return res.json({ errCode: 500, errMsg: "❌ Information must not be empty!" });
       if (email === "ROOT" || checkEmail(email)) {
         let user = await Users.findOne({ where: { email } });
         if (!user || !comparePassword(password, user.password)) {
           return res.json({
             errCode: 401,
-            errMsg: "Invalid email or password!",
+            errMsg: "❌ Email or Password incorrect!",
           });
         } else if (user.locked) {
-          return res.json({ errCode: 401, errMsg: "User is locked!" });
+          return res.json({ errCode: 401, errMsg: "❌ User is locked!" });
         } else {
           const accessToken = handleAccessToken.generate({
             email,
@@ -162,16 +162,16 @@ const UsersController = {
           delete user.password;
           return res.json({
             errCode: 200,
-            errMsg: "Login Success!",
+            errMsg: "✅ Login Success!",
             data: user,
           });
         }
       } else {
-        return res.json({ errCode: 500, errMsg: "Email wrong format!" });
+        return res.json({ errCode: 500, errMsg: "❌ Email wrong format!" });
       }
     } catch (err) {
       console.log(err);
-      return res.json({ errCode: 500, errMsg: "Login failed!" });
+      return res.json({ errCode: 500, errMsg: "❌ Login failure!" });
     }
   },
   updateProfile: async (req, res) => {
@@ -190,127 +190,98 @@ const UsersController = {
           currentPWD,
         } = req.body;
 
-      console.log(req.body);
+      
 
       if (!ID || (!name && !password)) {
-        return res.json({ errCode: 500, errMsg: "Invalid params!" });
+        return res.json({ errCode: 400, errMsg: "❌ Information must not be empty!" });
       }
 
       if (checkEmail(email)) {
         let opts = {};
 
-      if (name) {
-        opts.name = name;
-      }
-      if (username) {
-        opts.username = username;
-      }
-      if (gender) {
-        opts.gender = gender;
-      }
-      if (birth) {
-        opts.birth = birth;
-      }
-      if (phone) {
-        opts.phone = phone;
-      }
-      if (address) {
-        opts.address = address;
-      }
-      if (email) {
-        opts.email = email;
-      }
-      if (Object.keys(opts).length > 0) {
-        let userUpdated = await Users.update(opts, { where: { ID } });
-        if (userUpdated[0]) {
-          return res.json({
-            errCode: 200,
-            errMsg: "Update success!",
-          });
+        if (name) {
+          opts.name = name;
         }
+        if (username) {
+          opts.username = username;
+        }
+        if (gender) {
+          opts.gender = gender;
+        }
+        if (birth) {
+          opts.birth = birth;
+        }
+        if (phone) {
+          opts.phone = phone;
+        }
+        if (address) {
+          opts.address = address;
+        }
+        if (email) {
+          opts.email = email;
+        }
+        if(password) {
+          // if (!comparePassword(currentPWD, user.password)) {
+          //     return res.json({ errCode: 401, errMsg: '❌ Invalid current password!' })
+          // }
+          let passwordHash = hashPassword(password)
+          if(!passwordHash) return res.json({ errCode: 500, errMsg: '❌ System Error!'})
+          opts.password = passwordHash
       }
+        if (Object.keys(opts).length > 0) {
+          let userUpdated = await Users.update(opts, { where: { ID } });
+          if (userUpdated[0]) {
+            return res.json({
+              errCode: 200,
+              errMsg: "✅ Update Success!",
+              token: handleAccessToken.generate({
+                email: email,
+                role: user.role,
+                address: address,
+                birth: birth,
+                gender: gender,
+                locked: user.locked,
+                name: name,
+                phone: phone,
+                status: user.status,
+                username: username,
+                subjectId: user.subjectId,
+                id: user.ID,
+              })
+            });
+          }
+        }
 
-      return res.json({
-        errCode: 401,
-        errMsg: "Update failed!",
-      });
+        return res.json({
+          errCode: 401,
+          errMsg: "❌ Update failed!",
+        });
       } else {
-        return res.json({ errCode: 500, errMsg: "Email wrong format!" });
+        return res.json({ errCode: 500, errMsg: "❌ Email wrong format!" });
       }
-
-      // let opts = {};
-
-      // if (name) {
-      //   opts.name = name;
-      // }
-      // if (username) {
-      //   opts.username = username;
-      // }
-      // if (gender) {
-      //   opts.gender = gender;
-      // }
-      // if (birth) {
-      //   opts.birth = birth;
-      // }
-      // if (phone) {
-      //   opts.phone = phone;
-      // }
-      // if (address) {
-      //   opts.address = address;
-      // }
-      // if (email) {
-      //   opts.email = email;
-      // }
-    //   if (password) {
-    //     if (!comparePassword(currentPWD, user.password)) {
-    //       return res.json({
-    //         errCode: 401,
-    //         errMsg: "Invalid current password!",
-    //       });
-    //     }
-    //     let passwordHash = hashPassword(password);
-    //     if (!passwordHash)
-    //       return res.json({ errCode: 500, errMsg: "System Error!" });
-    //     opts.password = passwordHash;
-    //   }
-
-      // if (Object.keys(opts).length > 0) {
-      //   let userUpdated = await Users.update(opts, { where: { ID } });
-      //   if (userUpdated[0]) {
-      //     return res.json({
-      //       errCode: 200,
-      //       errMsg: "Update success!",
-      //     });
-      //   }
-      // }
-
-      // return res.json({
-      //   errCode: 401,
-      //   errMsg: "Update failed!",
-      // });
     } catch (err) {
       console.log(err);
-      return res.json({ errCode: 500, errMsg: "System Error!" });
+      return res.json({ errCode: 500, errMsg: "❎ System error❗️" });
     }
   },
   updateRole: async (req, res) => {
     try {
       let { ID, role } = req.body; // Lấy ra ID và vai trò mới từ req.body
       // console.log("req.body", req.body); // Dòng này làm gì?
-      if (!ID) return res.json({ errCode: 401, errMsg: "User not found!" }); // Kiểm tra xem ID có tồn tại không, nếu không trả về lỗi
+      if (!ID) return res.json({ errCode: 401, errMsg: "❌ User not found!" }); // Kiểm tra xem ID có tồn tại không, nếu không trả về lỗi
 
       if (role === "admin")
-        return res.json({ errCode: 401, errMsg: "Forbidden!" }); // Nếu vai trò mới là 'admin', trả về lỗi
+        return res.json({ errCode: 401, errMsg: "❌ The new role cannot be admin!" }); // Nếu vai trò mới là 'admin', trả về lỗi
 
       if (!["employee", "manager"].includes(role)) {
         // Kiểm tra xem vai trò mới có thuộc các giá trị hợp lệ không
-        return res.json({ errCode: 401, errMsg: "Invalid role!" }); // Nếu không, trả về lỗi
+        return res.json({ errCode: 401, errMsg: "❌ The new role is not valid!" }); // Nếu không, trả về lỗi
       }
 
       let checkAdminROOT = await Users.findOne({ where: { ID }, raw: true }); // Tìm kiếm người dùng theo ID
 
       if (checkAdminROOT.email === "ROOT" || checkAdminROOT.role === "admin")
-        return res.json({ errCode: 401, errMsg: "Forbidden!" }); // Nếu người dùng là 'ROOT' hoặc đã có vai trò là 'admin', trả về lỗi
+        return res.json({ errCode: 401, errMsg: "❌ You has no permission!" }); // Nếu người dùng là 'ROOT' hoặc đã có vai trò là 'admin', trả về lỗi
 
       let updated = await Users.update({ role }, { where: { ID } }); // Cập nhật vai trò mới của người dùng
 
@@ -318,13 +289,13 @@ const UsersController = {
         return res.json({
           errCode: 200,
           errMsg:
-            `Update success, now user: ${checkAdminROOT.name} is: ` + role, // Trả về thông báo thành công với tên và vai trò mới của người dùng
+            `✅ Update success, now user ${checkAdminROOT.name} is ` + role, // Trả về thông báo thành công với tên và vai trò mới của người dùng
         });
       } else {
-        return res.json({ errCode: 401, errMsg: "Update failed!" }); // Nếu cập nhật thất bại, trả về lỗi
+        return res.json({ errCode: 401, errMsg: "❌ Update failure!" }); // Nếu cập nhật thất bại, trả về lỗi
       }
     } catch (err) {
-      return res.json({ errCode: 500, errMsg: "System Error!" }); // Nếu có lỗi xảy ra trong quá trình xử lý, trả về lỗi hệ thống
+      return res.json({ errCode: 500, errMsg: "❎ System error❗️" }); // Nếu có lỗi xảy ra trong quá trình xử lý, trả về lỗi hệ thống
     }
   },
 
@@ -362,69 +333,69 @@ const UsersController = {
       return res.json({ errCode: 500, errMsg: "System Error!" }); // Nếu có lỗi xảy ra trong quá trình xử lý, trả về lỗi hệ thống
     }
   },
-//   updateUserSubject: async (req, res) => {
-//     try {
-//         let { ID, role, subjectId } = req.body;
-//         console.log("req.body", req.body);
-//         if (!ID) return res.json({ errCode: 401, errMsg: "User not found!" });
-//         if (!ID || (!subjectId && !role)) {
-//             return res.json({ errCode: 500, errMsg: "Invalid params!" });
-//         }
+  //   updateUserSubject: async (req, res) => {
+  //     try {
+  //         let { ID, role, subjectId } = req.body;
+  //         console.log("req.body", req.body);
+  //         if (!ID) return res.json({ errCode: 401, errMsg: "User not found!" });
+  //         if (!ID || (!subjectId && !role)) {
+  //             return res.json({ errCode: 500, errMsg: "Invalid params!" });
+  //         }
 
-//         let checkAdminRole = await Users.findOne({ where: { ID }, raw: true });
+  //         let checkAdminRole = await Users.findOne({ where: { ID }, raw: true });
 
-//         if ( checkAdminRole.role === "admin")
-//             return res.json({ errCode: 401, errMsg: "Forbidden!" });
+  //         if ( checkAdminRole.role === "admin")
+  //             return res.json({ errCode: 401, errMsg: "Forbidden!" });
 
-//         let updated;
+  //         let updated;
 
-//         // Kiểm tra nếu subjectId là một id
-//         if (!isNaN(parseInt(subjectId))) {
-//             updated = await Users.update({ subjectId }, { where: { ID } });
-//         } else { // Nếu subjectId là name của môn học
-//             let subject = await Subject.findOne({ where: { name: subjectId } });
-//             if (!subject) {
-//                 return res.json({ errCode: 401, errMsg: "Subject not found!" });
-//             }
-//             updated = await Users.update({ subjectId: subject.id }, { where: { ID } });
-//         }
+  //         // Kiểm tra nếu subjectId là một id
+  //         if (!isNaN(parseInt(subjectId))) {
+  //             updated = await Users.update({ subjectId }, { where: { ID } });
+  //         } else { // Nếu subjectId là name của môn học
+  //             let subject = await Subject.findOne({ where: { name: subjectId } });
+  //             if (!subject) {
+  //                 return res.json({ errCode: 401, errMsg: "Subject not found!" });
+  //             }
+  //             updated = await Users.update({ subjectId: subject.id }, { where: { ID } });
+  //         }
 
-//         if (updated[0]) {
-//             return res.json({
-//                 errCode: 200,
-//                 errMsg: `Update success, now user: ${checkAdminRole.subjectId} is: ` + subjectId,
-//             });
-//         } else {
-//             return res.json({ errCode: 401, errMsg: "Update failed!" });
-//         }
-//     } catch (err) {
-//         return res.json({ errCode: 500, errMsg: "System Error!" });
-//     }
-// },
+  //         if (updated[0]) {
+  //             return res.json({
+  //                 errCode: 200,
+  //                 errMsg: `Update success, now user: ${checkAdminRole.subjectId} is: ` + subjectId,
+  //             });
+  //         } else {
+  //             return res.json({ errCode: 401, errMsg: "Update failed!" });
+  //         }
+  //     } catch (err) {
+  //         return res.json({ errCode: 500, errMsg: "System Error!" });
+  //     }
+  // },
 
   lockOrUnlockUser: async (req, res) => {
     try {
       let { ID } = req.params,
         { isLocked } = req.body;
-      if (!ID) return res.json({ errCode: 404, errMsg: "User not found!" });
+      if (!ID) return res.json({ errCode: 404, errMsg: "❌ User not found!" });
       if (![true, false].includes(isLocked))
-        return res.json({ errCode: 404, errMsg: "System error!" });
+        return res.json({ errCode: 404, errMsg: "❎ System error❗️" });
 
       let user = await Users.update({ locked: isLocked }, { where: { ID } });
       if (user[0]) {
         return res.json({
           errCode: 200,
-          errMsg: `${isLocked ? "User is locked!" : "User is unlocked"}`,
+          errMsg: `${isLocked ? "✅ User is locked!" : "✅ User is unlocked"}`,
         });
       } else {
         return res.json({
           errCode: 401,
-          errMsg: `${isLocked ? "User locked" : "User unlocked"} failed!`,
+          errMsg: `${isLocked ? "❌ User locked" : " ❌ User unlocked"} failure!`,
         });
       }
     } catch (err) {
       console.log(err);
-      return res.json({ errCode: 500, errMsg: "System error!" });
+      return res.json({ errCode: 500, errMsg: "❎ System error❗️" });
     }
   },
   getAllUsers: async (req, res) => {
@@ -442,6 +413,30 @@ const UsersController = {
       }
       const listUsers = await Users.findAll({
         where: opts,
+        raw: true,
+        attributes: { exclude: ["password"] },
+        order: [["createdAt", "DESC"]],
+      });
+
+      return res.json({
+        errCode: 200,
+        errMsg: `Successfully!`,
+        data: listUsers,
+      });
+    } catch (err) {
+      console.log(err);
+      return res.json({ errCode: 500, errMsg: "System error!" });
+    }
+  },
+
+  getEmployee: async (req, res) => {
+    try {
+      
+      const listUsers = await Users.findAll({
+        where: {
+          role: 'employee',
+          locked: false
+        },
         raw: true,
         attributes: { exclude: ["password"] },
         order: [["createdAt", "DESC"]],
@@ -502,6 +497,30 @@ const UsersController = {
       } else {
         return res.json({ errCode: 401, errMsg: `Reset password failed!` });
       }
+    } catch (err) {
+      console.log(err);
+      return res.json({ errCode: 500, errMsg: "System error!" });
+    }
+  },
+
+  getInforUser: async (req, res) => {
+    try {
+      let { ID } = req.params;
+      if (!ID) return res.json({ errCode: 401, errMsg: "User not found!" });
+
+      let InforUser = await Users.findAll({
+        where: {
+          ID: ID,
+        },
+        raw: true,
+        order: [["createdAt", "DESC"]],
+      });
+
+      return res.json({
+        errCode: 200,
+        errMsg: "Success",
+        data: InforUser,
+      });
     } catch (err) {
       console.log(err);
       return res.json({ errCode: 500, errMsg: "System error!" });
