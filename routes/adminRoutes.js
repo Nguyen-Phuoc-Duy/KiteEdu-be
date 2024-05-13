@@ -12,7 +12,6 @@ const router = express.Router();
 
 router.post('/lockOrUnlockUser/:ID', UsersController.lockOrUnlockUser);
 
-// router.post('/createTable', TalbeController.createTable);
 
 router.post('/createSubject', SubjectController.createSubject);
 
@@ -21,23 +20,10 @@ router.post('/createSubject', SubjectController.createSubject);
 router.post('/createRoom', RoomController.createRoom);
 
 
-// router.post('/updateTable', TalbeController.updateTable);
 
 router.post('/updateSubject', SubjectController.updateSubject);
 
 router.post('/updateRoom', RoomController.updateRoom);
-
-// router.delete('/deleteTable/:ID', TalbeController.deleteTable);
-
-// router.post('/createProduct', ProductsController.createProduct);
-
-// router.post('/updateProduct', ProductsController.updateProduct);
-
-// router.post('/getAllOrders', OrdersController.getAllOrders);
-
-// router.post('/createEmployee', UsersController.register);
-
-// router.delete('/deleteProduct/:ID', ProductsController.deleteProduct);
 
 router.post('/updateUserRole', UsersController.updateRole);
 

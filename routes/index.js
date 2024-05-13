@@ -8,25 +8,18 @@ const authorization = require("../polices/authorization");
 const authAdmin = require("../polices/authAdmin");
 
 const adminRoutes = require("./adminRoutes");
-const ordersRoutes = require("./ordersRoutes");
 const classesRoutes = require("./classesRoutes");
 const pupilsRoutes = require("./pupilsRoutes");
 const lessonsRoutes = require("./lessonsRoutes")
-// const listPupilRoutes = require("./listPupilRoutes")
-// const ProductsController = require("../controllers/ProductsController");
-// const TalbeController = require("../controllers/TableController");
+
 const SubjectController = require("../controllers/SubjectController");
 const RoomController = require("../controllers/RoomController");
 const PupilController = require("../controllers/PupilController");
 const ClassController = require("../controllers/ClassController");
-// const ListPupilController = require("../controllers/ListPupilController");
+
 const LessonController = require("../controllers/LessonController");
 function routes(app) {
-  // app.use('/news', newRouter);
 
-  // app.use('/courses', courseRouter);
-
-  // app.use('/me', meRouter)
 
   app.get("/testService", authorization, (req, res) => {
     res.status(200).json({ message: "Connect service ok!" });
@@ -48,9 +41,6 @@ function routes(app) {
 
   app.get("/getInforUser/:ID", authorization, UsersController.getInforUser);
 
-  // app.get("/products/getAll", ProductsController.getAllProduct);
-
-  // app.get("/tables/getAll", authorization, TalbeController.getAll);
 
   app.get("/subjects/getAll", authorization, SubjectController.getAll);
 
@@ -66,7 +56,6 @@ function routes(app) {
 
   app.use("/admin", authAdmin, adminRoutes);
 
-  // app.use("/orders", authorization, ordersRoutes);
 
   app.use("/class", authorization, classesRoutes);
 
@@ -74,7 +63,6 @@ function routes(app) {
 
   app.use("/pupil", authorization, pupilsRoutes);
 
-  // app.use("/listpupil", authorization, listPupilRoutes);
 
   app.use("/", (req, res) => {
     res.status(200).json({ message: "Connected to Service!" });

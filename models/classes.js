@@ -20,14 +20,7 @@ const Classes = sequelize.define('Classes', {
         type: DataTypes.UUID,
         allowNull: false
     },
-    // createdBy: {
-    //     type: DataTypes.UUID,
-    //     allowNull: false
-    // }, // ID User
-    // checkoutBy: {
-    //     type: DataTypes.UUID,
-    //     allowNull: true
-    // }
+
 });
 
 module.exports = Classes;
